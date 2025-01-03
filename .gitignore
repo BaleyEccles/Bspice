@@ -1,0 +1,11 @@
+*~
+*.m
+src/test
+test
+test.cpp
+main
+main.log
+boost/*
+Ideas/*
+Draft1*
+octave-workspace
