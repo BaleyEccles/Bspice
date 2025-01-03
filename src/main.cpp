@@ -13,7 +13,7 @@ matrix<double> DAESolveNextState(matrix<double> E, matrix<double> A, matrix<doub
   
   std::vector<std::vector<double>> d_yn_dtData;
   std::vector<std::vector<double>> yn1Data;
-  auto EinvMulA = Einv.multiply(Einv, A);
+  auto EinvMulA = multiply(Einv, A);
   for (int row = 0; row < f.rows; row++) {
     auto equEinv = Einv.getRow(row);
     auto equA = A.getRow(row);

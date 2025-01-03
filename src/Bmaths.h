@@ -11,58 +11,6 @@ struct matrix {
   std::vector<std::vector<T>> data;
   int cols, rows;
 
-
-  matrix<T> multiply(matrix<T> A, matrix<T> B) {
-    int An = A.cols;
-    int Bn = A.rows;
-    if (An != Bn) { std::cerr << "ERROR: cols of A must be rows of B" << std::endl; }
-    std::vector<std::vector<T>> outputData(A.rows, std::vector<T>(B.cols, 0));
-    for (int i = 0; i < A.rows; ++i) {
-      for (int j = 0; j < B.cols; ++j) {
-        for (int k = 0; k < A.cols; ++k) {
-          outputData[i][j] += A.data[i][k] * B.data[k][j];
-        }
-      }
-    }
- 
-    matrix<T> output = {
-      outputData,
-      B.rows, A.cols
-    };
-    return output;
-  }
-
-
-  matrix<T> subtract(matrix<T> A, matrix<T> B) {
-    if (A.cols != B.cols || A.rows != B.rows) { std::cerr << "ERROR: Mismatched matrix sizes" << std::endl; }
-    std::vector<std::vector<T>> outputData(A.rows, std::vector<T>(A.cols, 0));
-    for (int i = 0; i < A.rows; ++i) {
-      for (int j = 0; j < A.cols; ++j) {
-        outputData[j][i] = A.data[j][i] - B.data[j][i];
-      }
-    }
-    matrix<T> output = {
-      outputData,
-      A.cols, A.rows
-    };
-    return output;
-  }
-
-  matrix<T> add(matrix<T> A, matrix<T> B) {
-    if (A.cols != B.cols || A.rows != B.rows) { std::cerr << "ERROR: Mismatched matrix sizes" << std::endl; }
-    std::vector<std::vector<T>> outputData(A.rows, std::vector<T>(A.cols, 0));
-    for (int i = 0; i < A.rows; ++i) {
-      for (int j = 0; j < A.cols; ++j) {
-        outputData[j][i] = A.data[j][i] + B.data[j][i];
-      }
-    }
-    matrix<T> output = {
-      outputData,
-      A.cols, A.rows
-    };
-    return output;
-  }
-
   matrix<T> scale(double scale) {
     std::vector<std::vector<T>> outputData(rows, std::vector<T>(cols, 0));
     for (int i = 0; i < rows; ++i) {
@@ -180,6 +128,60 @@ struct matrix {
     return inv;
   }
 };
+
+template<typename T>
+matrix<T> multiply(matrix<T> A, matrix<T> B) {
+  int An = A.cols;
+  int Bn = A.rows;
+  if (An != Bn) { std::cerr << "ERROR: cols of A must be rows of B" << std::endl; }
+  std::vector<std::vector<T>> outputData(A.rows, std::vector<T>(B.cols, 0));
+  for (int i = 0; i < A.rows; ++i) {
+    for (int j = 0; j < B.cols; ++j) {
+      for (int k = 0; k < A.cols; ++k) {
+        outputData[i][j] += A.data[i][k] * B.data[k][j];
+      }
+    }
+  }
+ 
+  matrix<T> output = {
+    outputData,
+    B.rows, A.cols
+  };
+  return output;
+}
+
+template<typename T>
+matrix<T> subtract(matrix<T> A, matrix<T> B) {
+  if (A.cols != B.cols || A.rows != B.rows) { std::cerr << "ERROR: Mismatched matrix sizes" << std::endl; }
+  std::vector<std::vector<T>> outputData(A.rows, std::vector<T>(A.cols, 0));
+  for (int i = 0; i < A.rows; ++i) {
+    for (int j = 0; j < A.cols; ++j) {
+      outputData[j][i] = A.data[j][i] - B.data[j][i];
+    }
+  }
+  matrix<T> output = {
+    outputData,
+    A.cols, A.rows
+  };
+  return output;
+}
+
+template<typename T>
+matrix<T> add(matrix<T> A, matrix<T> B) {
+  if (A.cols != B.cols || A.rows != B.rows) { std::cerr << "ERROR: Mismatched matrix sizes" << std::endl; }
+  std::vector<std::vector<T>> outputData(A.rows, std::vector<T>(A.cols, 0));
+  for (int i = 0; i < A.rows; ++i) {
+    for (int j = 0; j < A.cols; ++j) {
+      outputData[j][i] = A.data[j][i] + B.data[j][i];
+    }
+  }
+  matrix<T> output = {
+    outputData,
+    A.cols, A.rows
+  };
+  return output;
+}
+
 
 struct symbol {
   std::string name;
