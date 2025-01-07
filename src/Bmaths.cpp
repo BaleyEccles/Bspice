@@ -1,11 +1,4 @@
 #include "Bmaths.h"
-
-
-
-
-
-
-
 // Of the form 0 = a*x1 + b*x2 + c*x3 + ...
 double equation::solve(symbol sym, const std::vector<std::pair<symbol, double>>& values) {
   double solution = 0.0;
