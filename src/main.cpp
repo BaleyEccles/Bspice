@@ -45,7 +45,7 @@ matrix<double> y(matrix<symbol> syms, matrix<double> E, matrix<double> A, matrix
   return nextState;
 };
 
-void createOctavePlotFile(std::vector<double> time, std::vector<matrix<double>> data, matrix<symbol> names) {
+void createOctavePlotFile(std::vector<double>& time, std::vector<matrix<double>>& data, matrix<symbol>& names) {
   if (data.size() != time.size()) {
     std::cerr << "Time and data have different sizes" << std::endl;
   }
@@ -56,19 +56,21 @@ void createOctavePlotFile(std::vector<double> time, std::vector<matrix<double>> 
     std::cerr << "Error opening file" << std::endl;
     return;
   }
-  //file << "graphics_toolkit(\"gnuplot\")\n";
+  file << "graphics_toolkit(\"gnuplot\")\n";
   file << "set(0, 'DefaultTextFontSize', 25);";
   file << "set(0, 'DefaultAxesFontSize', 25);";
   file << ("t = [");
   for (int i = 0; i < data.size(); i++) {
     file << std::scientific << std::setprecision(5) << time[i] << " ";
   }
+
   for (int j = 0; j < names.rows; j++) {
     file << ("]\n" + names.data[j][0].name + " = [");
     for (int i = 0; i < data.size(); i++) {
       file << std::scientific << std::setprecision(5) << data[i].data[j][0] << " ";
     }
   }
+
   file << ("]\n");
   for (int j = 0; j < names.rows; j++) {
     file << ("figure(" + std::to_string(j + 1) + ");\n");
@@ -76,13 +78,14 @@ void createOctavePlotFile(std::vector<double> time, std::vector<matrix<double>> 
     file << ("xlabel(\"t\");\n");
     file << ("ylabel(\"" + names.data[j][0].name + "\");\n");
   }
-  /* Print voltage over component
+
+  // Print voltage over component
   file << ("figure(" + std::to_string(names.rows + 1) + ");\n");
   file << ("plot(t, e2 - e3)\n");
   file << ("xlabel \"t\");");
   file << ("ylabel (\"e2-e3\");");
-  */
   
+
   file << ("pause;");
   file.close();
 };
@@ -94,7 +97,6 @@ int main() {
   double G = 1/R;
   double Vs = 5;
   
-  /*
   matrix<double> A = {
     std::vector<std::vector<double>> {
       { G , -G , 0.0},
@@ -157,7 +159,7 @@ int main() {
   time.push_back(start_time);
   double time_step = 0.001;
   double h = time_step;
-  */
+
   //for (int i = 0; i < 2000; i++) {
   //  double tn = i*h - h;
   //  matrix<double> d_yn_dt = derivatives[derivatives.size() - 1];
@@ -169,6 +171,11 @@ int main() {
   //
   //};
   //createOctavePlotFile(time, output, syms);
+  A.print();
+  E.print();
+  f.print();
+  initalValues.print();
+    
   {
     Node* Node1 = new Node("e1");
     Node* Node2 = new Node("e2");
@@ -195,8 +202,6 @@ int main() {
     Node4->addComponent(C2);
 
 
-
-
     std::cout << "From Circ" << std::endl;
     Circuit circuit;
     circuit.addNode(Node1);
@@ -205,16 +210,14 @@ int main() {
     circuit.addNode(Node4);
     circuit.calculate();
 
-    
-
-    
     std::vector<double> time;
     std::vector<matrix<double>> output;
     auto initalValues = circuit.initalValues;
     auto A = circuit.A;
     auto E = circuit.E;
     auto f = circuit.f;
-    auto syms = circuit.syms;
+    auto s = circuit.syms.data;
+    matrix<symbol> syms = {{{s[0]}, {s[1]}, {s[2]}}, circuit.syms.cols, circuit.syms.rows - 1};
     output.push_back(initalValues);
     double start_time = 0.0;
     time.push_back(start_time);
@@ -230,7 +233,6 @@ int main() {
     
     };
     createOctavePlotFile(time, output, syms);
-    
   }
   return 0;
   

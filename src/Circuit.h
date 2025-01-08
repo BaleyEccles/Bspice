@@ -12,12 +12,15 @@ enum ComponentType {
   INDUCTOR,
 };
 
+class Node;
 class Component {
  public:
   Component(const std::string& name, ComponentType Type);
   virtual ~Component() = default;
   std::string ComponentName;
   ComponentType Type;
+  std::vector<Node*> Connections;
+  
 };
 
 class Resistor : public Component {
@@ -49,21 +52,24 @@ class Node {
 class Circuit {
  public:
   Circuit();
+  // Main things
   void addNode(Node* node);
   void calculate();
-
   std::vector<Node*> nodes;
 
-
-
+  // Data 
   std::vector<double> time;
   matrix<double> A, E, f, initalValues;
   matrix<symbol> syms;
+
+  // Helper functions
+  matrix<symbol> removeGroundSym();
 private:
   void generateMatrices();
   std::vector<Node*> findNodeFromComponent(std::shared_ptr<Component> comp);
   void generateSymbols();
   void preAllocateMatrixData();
   int findNodeLocationFromNode(Node* node);
+  void generateComponentConections();
 
 };
