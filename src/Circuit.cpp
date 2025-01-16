@@ -34,20 +34,36 @@ void Circuit::calculate() {
 
   generateComponentConections();
   generateMatrices();
-  //  std::cout << "A:" << std::endl;
-  //  A.print();
-  //  std::cout << "E:" << std::endl;
-  //  E.print();
-  //  std::cout << "f:" << std::endl;
-  //  f.print();
-  //  std::cout << "Inital Values:" << std::endl;
+
+
+  //  A = {
+  //    {{0.00010, -0.00010, 1.00000},
+  //     {-0.00010, 0.00020, 0.0},
+  //     {1.00000, 0.00000, 0.00000}},
+  //    3, 3
+  //  };
+  //  f = {
+  //    {{0},
+  //     {0},
+  //     {5}
+  //    },
+  //    1, 3
+//  };
+
+  std::cout << "A:" << std::endl;
+  A.print();
+  std::cout << "E:" << std::endl;
+  E.print();
+  std::cout << "f:" << std::endl;
+  f.print();
+  std::cout << "Inital Values:" << std::endl;
   initalValues.print();
 }
 
 
 void Circuit::generateMatrices() {
   
-  int equationNumber = 0; 
+  int i = 0;
   for (auto node : nodes) {
     if (node->nodeName != "GND") {
       //A.print();
@@ -62,12 +78,12 @@ void Circuit::generateMatrices() {
           int nodeLocation1 = findNodeLocationFromNode(c->Connections[0]);
           int nodeLocation2 = findNodeLocationFromNode(c->Connections[1]);
           auto resistor = dynamic_cast<Resistor*>(c.get());
-          if (node == c->Connections[0]) {      
-            A.data[equationNumber][nodeLocation1] +=  1/resistor->Resistance;
-            A.data[equationNumber][nodeLocation2] += -1/resistor->Resistance;
+          if (node == c->Connections[0]) {
+            A.data[i][nodeLocation1] +=  1/resistor->Resistance;
+            A.data[i][nodeLocation2] += -1/resistor->Resistance;
           } else {
-            A.data[equationNumber][nodeLocation1] -=  1/resistor->Resistance;
-            A.data[equationNumber][nodeLocation2] -= -1/resistor->Resistance;
+            A.data[i][nodeLocation1] -=  1/resistor->Resistance;
+            A.data[i][nodeLocation2] -= -1/resistor->Resistance;
           }
         
           break;
@@ -83,36 +99,28 @@ void Circuit::generateMatrices() {
           auto capacitor = dynamic_cast<Capacitor*>(c.get());
 
           if (node == c->Connections[0]) {
-            E.data[equationNumber][nodeLocation1] +=  capacitor->Capacitance;
-            E.data[equationNumber][nodeLocation2] += -capacitor->Capacitance;
+            E.data[i][nodeLocation1] +=  capacitor->Capacitance;
+            E.data[i][nodeLocation2] += -capacitor->Capacitance;
           } else {
-            E.data[equationNumber][nodeLocation1] -=  capacitor->Capacitance;
-            E.data[equationNumber][nodeLocation2] -= -capacitor->Capacitance;
+            E.data[i][nodeLocation1] -=  capacitor->Capacitance;
+            E.data[i][nodeLocation2] -= -capacitor->Capacitance;
           }
           break;
         }
         case ComponentType::VOLTAGESOURCE: {
           // FIXME: deal with more than one node per voltage
           int nodeLocation1 = findNodeLocationFromNode(c->Connections[0]);
-          int nodeLocationCurrent = findNodeLocationFromSymbol("i_" + c->ComponentName);
           auto voltageSource = dynamic_cast<VoltageSource*>(c.get());
           initalValues.data[nodeLocation1][0] += voltageSource->Voltage;
-          // FIXME?: This might break on diff circuits
-          A.data[equationNumber][nodeLocationCurrent] = 1;
-          A.data[nodeLocationCurrent][equationNumber] = 1;
-          f.data[nodeLocationCurrent][0] += voltageSource->Voltage;
-          
+ 
           break;
         } // TODO: add other components
         default: {
           std::cerr << "ERROR: Component of type: " << c->Type << " and name: " << c->ComponentName << " was not handled" << std::endl;
         }}
       }
-    } else { // node == GND
-      int GNDLocation = findNodeLocationFromNode(node);
-      A.data[equationNumber][GNDLocation] = 1;
     }
-    equationNumber++;
+    i++;
   }
 }
 
@@ -138,28 +146,13 @@ int Circuit::findNodeLocationFromNode(Node* node) {
       }
     }    
   }
-  std::cerr << "ERROR: Location Not Found" << std::endl;
-  return -1;
-}
-
-int Circuit::findNodeLocationFromSymbol(std::string symName) {
-  for (int i = 0 ; i < syms.rows; i++) {
-    for (int j = 0 ; j < syms.cols; j++) {
-      if (syms.data[i][j].name == symName) {
-        return i;
-      }
-    }    
-  }
-  std::cerr << "ERROR: Location Not Found" << std::endl;
   return -1;
 }
 
 void Circuit::generateSymbols() {
   bool hasGround = false;
   for (auto node : nodes) {
-    //if (node->nodeName != "GND") {
     syms.data.push_back({symbol(node->nodeName)});
-      //}
     if (node->nodeName == "GND") hasGround = true;
   }
   if (hasGround == false) {
@@ -179,6 +172,7 @@ void Circuit::generateSymbols() {
 
 
 void Circuit::preAllocateMatrixData() {
+  // need to -1 because of GND
   int matrixSize = syms.rows;
   A.rows = matrixSize;
   A.cols = matrixSize;

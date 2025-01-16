@@ -77,6 +77,8 @@ struct matrix {
     return output;
   };
 
+
+
   double norm(double Ln) {
     if (cols > 1) {
       std::cerr << "TODO: Norm with more than one col is not implemented" << std::endl;
@@ -88,6 +90,7 @@ struct matrix {
     norm = std::pow(norm, 1/Ln);
     return norm;
   };
+
   
   double max() {
     double max = 0.0;
@@ -216,8 +219,8 @@ struct matrix {
       // Make the diagonal contain all 1s
       double diag = augmented[i][i];
       if (diag == 0) {
-        //print();
-        //std::cerr << "ERROR: matrix is singular" << std::endl;
+        print();
+        std::cerr << "ERROR: matrix is singular" << std::endl;
       }
       for (int k = 0; k < 2 * n; k++) {
         augmented[i][k] /= diag;

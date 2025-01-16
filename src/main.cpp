@@ -268,7 +268,6 @@ int main() {
     createOctavePlotFile(time, output, s);
     delete Node1;
     delete Node2;
-    //delete Node3;
     delete GND;
   }
   return 0;
