@@ -215,8 +215,6 @@ matrix<T> add(matrix<T> A, matrix<T> B) {
 }
 
 
-
-
 struct equation {
   std::vector<std::pair<double, symbol>> equation;
 
