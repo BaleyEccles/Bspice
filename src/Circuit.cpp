@@ -34,52 +34,13 @@ void Circuit::calculate() {
 
   generateComponentConections();
   generateMatrices();
-  bool doThing = false;
-  if (doThing == true){
-    A = {
-      {{0.00010, -0.00010, 1.00000},
-       {-0.00010, 0.00020, 0.0},
-       {1.00000, 0.00000, 0.00000}},
-      3, 3
-    };
-
-    E = {
-      {{0, 0, 0},
-       {0, 0, 0},
-       {0, 0, 0}},
-      3, 3
-    };
-    f = {
-      {{0},
-       {0},
-       {5}
-      },
-      1, 3
-    };
-
-    initalValues = {
-      {{5},
-       {0},
-       {0}
-      },
-      1, 3
-    };
-    syms = {
-      {{symbol("e1")},
-       {symbol("e2")},
-       {symbol("GND")}
-      },
-      1, 3
-    };
-  }
-
-  std::cout << "A:" << std::endl;
-  A.print();
-  std::cout << "E:" << std::endl;
-  E.print();
-  std::cout << "f:" << std::endl;
-  f.print();
-  std::cout << "Inital Values:" << std::endl;
+  //  std::cout << "A:" << std::endl;
+  //  A.print();
+  //  std::cout << "E:" << std::endl;
+  //  E.print();
+  //  std::cout << "f:" << std::endl;
+  //  f.print();
+  //  std::cout << "Inital Values:" << std::endl;
   initalValues.print();
 }
 
