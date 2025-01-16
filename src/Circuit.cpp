@@ -34,21 +34,44 @@ void Circuit::calculate() {
 
   generateComponentConections();
   generateMatrices();
+  bool doThing = false;
+  if (doThing == true){
+    A = {
+      {{0.00010, -0.00010, 1.00000},
+       {-0.00010, 0.00020, 0.0},
+       {1.00000, 0.00000, 0.00000}},
+      3, 3
+    };
 
+    E = {
+      {{0, 0, 0},
+       {0, 0, 0},
+       {0, 0, 0}},
+      3, 3
+    };
+    f = {
+      {{0},
+       {0},
+       {5}
+      },
+      1, 3
+    };
 
-  //  A = {
-  //    {{0.00010, -0.00010, 1.00000},
-  //     {-0.00010, 0.00020, 0.0},
-  //     {1.00000, 0.00000, 0.00000}},
-  //    3, 3
-  //  };
-  //  f = {
-  //    {{0},
-  //     {0},
-  //     {5}
-  //    },
-  //    1, 3
-//  };
+    initalValues = {
+      {{5},
+       {0},
+       {0}
+      },
+      1, 3
+    };
+    syms = {
+      {{symbol("e1")},
+       {symbol("e2")},
+       {symbol("GND")}
+      },
+      1, 3
+    };
+  }
 
   std::cout << "A:" << std::endl;
   A.print();
@@ -116,7 +139,7 @@ void Circuit::generateMatrices() {
           // FIXME?: This might break on diff circuits
           A.data[equationNumber][nodeLocationCurrent] = 1;
           A.data[nodeLocationCurrent][equationNumber] = 1;
-          f.data[nodeLocation1][equationNumber] += voltageSource->Voltage;
+          f.data[nodeLocationCurrent][0] += voltageSource->Voltage;
           
           break;
         } // TODO: add other components

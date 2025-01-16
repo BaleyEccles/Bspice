@@ -250,7 +250,7 @@ int main() {
     auto A = circuit.A;
     auto E = circuit.E;
     auto f = circuit.f;
-    auto s = circuit.syms.data;
+    auto s = circuit.syms;
     circuit.syms.print();
 
     output.push_back(initalValues);
@@ -265,7 +265,7 @@ int main() {
       output.push_back(outputs);
       time.push_back(tn);
     };
-    createOctavePlotFile(time, output, syms);
+    createOctavePlotFile(time, output, s);
     delete Node1;
     delete Node2;
     //delete Node3;
