@@ -48,7 +48,6 @@ void Circuit::generateMatrices() {
   std::cout << "A:" << std::endl;
   for (auto node : nodes) {
     if (node->nodeName != "GND") {
-      //A.print();
       for (auto c : node->components) {
         switch (c->Type) {
         case ComponentType::RESISTOR: {
@@ -71,6 +70,25 @@ void Circuit::generateMatrices() {
           break;
         }
         case ComponentType::CAPACITOR: {
+          if (c->Connections.size() > 2) {
+            std::cerr << "ERROR: Capacitor " << c->ComponentName << " has too many connections" << std::endl;
+          } else if (c->Connections.size() < 2) {
+            std::cerr << "ERROR: Capacitor " << c->ComponentName << " has not got enough connections" << std::endl;
+          }
+          int nodeLocation1 = findNodeLocationFromNode(c->Connections[0]);
+          int nodeLocation2 = findNodeLocationFromNode(c->Connections[1]);
+          auto capacitor = dynamic_cast<Capacitor*>(c.get());
+
+          if (node == c->Connections[0]) {
+            E.data[i][nodeLocation1] +=  capacitor->Capacitance;
+            E.data[i][nodeLocation2] += -capacitor->Capacitance;
+          } else {
+            E.data[i][nodeLocation1] -=  capacitor->Capacitance;
+            E.data[i][nodeLocation2] -= -capacitor->Capacitance;
+          }
+          break;
+        }
+        case ComponentType::INDUCTOR: {
           if (c->Connections.size() > 2) {
             std::cerr << "ERROR: Capacitor " << c->ComponentName << " has too many connections" << std::endl;
           } else if (c->Connections.size() < 2) {
@@ -145,8 +163,7 @@ void Circuit::generateSymbols() {
 
 
 void Circuit::preAllocateMatrixData() {
-  // need to -1 because of GND
-  int matrixSize = syms.rows - 1;
+  int matrixSize = syms.rows;
   A.rows = matrixSize;
   A.cols = matrixSize;
   std::vector<std::vector<double>> Adata(A.rows, std::vector<double>(A.cols, 0.0));

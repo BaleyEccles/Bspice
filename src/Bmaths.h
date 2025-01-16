@@ -5,7 +5,13 @@
 #include <utility>
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 
+struct symbol {
+  std::string name;
+  symbol(const std::string& n);
+  symbol() : name("NULL") {}
+};
 
 template<typename T>
 struct matrix {
@@ -31,34 +37,56 @@ struct matrix {
     for (int i = 0; i < rows; i++) {
       output.push_back({data[i][col]});
     }
-    return matrix<T>{output, 3, 1};
+    return matrix<T>{output, 1, rows};
   }
   matrix<T> getRow(int row) {
     std::vector<std::vector<T>> output;
     for (int i = 0; i < cols; i++) {
       output.push_back({data[row][i]});
     }
-    return matrix<T>{output, 3, 1};
+    return matrix<T>{output, 1, cols};
   }
-
+  
   void print() {
     for (int i = 0; i < rows; i++) {
       for (int j = 0; j < cols; j++) {
-        printf("%.5e ", data[i][j]);
+        if constexpr (std::is_arithmetic<T>::value) {
+          // If T is an arithmetic type (int, float, double, etc.)
+          std::cout << std::fixed << std::setprecision(5) << data[i][j] << " ";
+        } else if constexpr (std::is_same<T, symbol>::value) {
+          // If T is a string
+          std::cout << data[i][j].name << " ";
+        }
       }
-      printf("\n");
+      std::cout << "\n";
     }
-    printf("\n");
+    std::cout << "\n";
   }
 
-  matrix<T> psudoInvert() {
+  matrix<T> transpose() {
+    std::vector<std::vector<T>> outputVec(cols, std::vector<T>(rows));
+    for (int row = 0; row < rows; row++) {
+      for (int col = 0; col < cols; col++) {
+        outputVec[col][row] = data[row][col];
+      }
+    }
+    matrix<T> output = {
+      outputVec,
+      rows, cols
+    };
+    return output;
+  };
+
+
+  matrix<T> pseudoInvert() {
     std::vector<std::vector<T>> outputData(rows, std::vector<T>(cols, 0));
-    for (int i = 0; i < rows; ++i) {
-      for (int j = 0; j < cols; ++j) {
-        if (data[j][i] == 0) {
-          outputData[j][i] = 0.0;
-        } else { 
-        outputData[j][i] = 1/data[j][i];
+
+    for (int row = 0; row < rows; ++row) {
+      for (int col = 0; col < cols; ++col) {
+        if (data[row][col] != 0) {
+          outputData[row][col] = 1 / data[row][col];
+        } else {
+          outputData[row][col] = 0;
         }
       }
     }
@@ -132,22 +160,25 @@ struct matrix {
 
 template<typename T>
 matrix<T> multiply(matrix<T> A, matrix<T> B) {
-  int An = A.cols;
-  int Bn = A.rows;
-  if (An != Bn) { std::cerr << "ERROR: cols of A must be rows of B" << std::endl; }
+  if (A.cols != B.rows) {
+    std::cerr << "ERROR: cols of A must be equal to rows of B" << std::endl;
+    return matrix<T>();
+  }
+
   std::vector<std::vector<T>> outputData(A.rows, std::vector<T>(B.cols, 0));
-  for (int i = 0; i < A.rows; ++i) {
-    for (int j = 0; j < B.cols; ++j) {
+
+  for (int row = 0; row < A.rows; ++row) {
+    for (int col = 0; col < B.cols; ++col) {
       for (int k = 0; k < A.cols; ++k) {
-        outputData[i][j] += A.data[i][k] * B.data[k][j];
+        outputData[row][col] += A.data[row][k] * B.data[k][col];
       }
     }
   }
- 
   matrix<T> output = {
     outputData,
-    B.rows, A.cols
+    B.cols, A.rows
   };
+
   return output;
 }
 
@@ -155,9 +186,9 @@ template<typename T>
 matrix<T> subtract(matrix<T> A, matrix<T> B) {
   if (A.cols != B.cols || A.rows != B.rows) { std::cerr << "ERROR: Mismatched matrix sizes" << std::endl; }
   std::vector<std::vector<T>> outputData(A.rows, std::vector<T>(A.cols, 0));
-  for (int i = 0; i < A.rows; ++i) {
-    for (int j = 0; j < A.cols; ++j) {
-      outputData[j][i] = A.data[j][i] - B.data[j][i];
+  for (int row = 0; row < A.rows; ++row) {
+    for (int col = 0; col < A.cols; ++col) {
+      outputData[row][col] = A.data[row][col] - B.data[row][col];
     }
   }
   matrix<T> output = {
@@ -171,9 +202,9 @@ template<typename T>
 matrix<T> add(matrix<T> A, matrix<T> B) {
   if (A.cols != B.cols || A.rows != B.rows) { std::cerr << "ERROR: Mismatched matrix sizes" << std::endl; }
   std::vector<std::vector<T>> outputData(A.rows, std::vector<T>(A.cols, 0));
-  for (int i = 0; i < A.rows; ++i) {
-    for (int j = 0; j < A.cols; ++j) {
-      outputData[j][i] = A.data[j][i] + B.data[j][i];
+  for (int row = 0; row < A.rows; ++row) {
+    for (int col = 0; col < A.cols; ++col) {
+      outputData[row][col] = A.data[row][col] + B.data[row][col];
     }
   }
   matrix<T> output = {
@@ -184,10 +215,7 @@ matrix<T> add(matrix<T> A, matrix<T> B) {
 }
 
 
-struct symbol {
-  std::string name;
-  symbol(const std::string& n);
-};
+
 
 struct equation {
   std::vector<std::pair<double, symbol>> equation;
