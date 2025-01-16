@@ -70,6 +70,7 @@ private:
   void generateSymbols();
   void preAllocateMatrixData();
   int findNodeLocationFromNode(Node* node);
+  int findNodeLocationFromSymbol(std::string symName);
   void generateComponentConections();
 
 };

@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <iomanip>
+#include "Bmaths.h"
 #include "Circuit.h"
 
 
@@ -39,9 +40,34 @@ matrix<double> DAESolveNextState(matrix<double> E, matrix<double> A, matrix<doub
   return output;
 };
 
+matrix<double> AESolveNextState(matrix<double> E, matrix<double> A, matrix<double> f, matrix<double> yn, double h) {
+  // Jacobian
+  // For now we are only dealing with first order polynomials
+  // So the Jacobian will be the same as A
+  int maxIt = 1000;
+  const double eps = 1e-6;
+  for (int i = 0; i < maxIt; i++) {
+    auto F = subtract(multiply(A, yn), f);
+    auto J = A;
+    // d = -J(-1)*F
+    auto delta = multiply(J.invert().scale(-1),F);
+    yn = add(yn, delta);
+    if (delta.norm(2) < eps) {
 
-matrix<double> y(matrix<symbol> syms, matrix<double> E, matrix<double> A, matrix<double> f, matrix<double> yn, double h) {  
-  auto nextState = DAESolveNextState(E, A, f, yn, h);
+      //std::cerr << "Newtons method did converge" << std::endl;
+      //yn.print();
+      break;
+    }
+    if (i >= maxIt - 3) {
+      //      std::cerr << "Newtons method did not converge" << std::endl;
+      //      yn.print();
+    }
+  }
+  return yn;
+};
+matrix<double> y(matrix<symbol> syms, matrix<double> E, matrix<double> A, matrix<double> f, matrix<double> yn, double h) {
+  auto nextState = AESolveNextState(E, A, f, yn, h);  
+  //auto nextState = DAESolveNextState(E, A, f, yn, h);
   return nextState;
 };
 
@@ -79,11 +105,11 @@ void createOctavePlotFile(std::vector<double>& time, std::vector<matrix<double>>
     file << ("ylabel(\"" + names.data[j][0].name + "\");\n");
   }
 
-  // Print voltage over component
-  file << ("figure(" + std::to_string(names.rows + 1) + ");\n");
-  file << ("plot(t, e2 - e3)\n");
-  file << ("xlabel \"t\");");
-  file << ("ylabel (\"e2-e3\");");
+  /// Print voltage over component
+  //file << ("figure(" + std::to_string(names.rows + 1) + ");\n");
+  //file << ("plot(t, e2 - e3)\n");
+  //file << ("xlabel \"t\");");
+  //file << ("ylabel (\"e2-e3\");");
   
 
   file << ("pause;");
@@ -171,43 +197,51 @@ int main() {
   //
   //};
   //createOctavePlotFile(time, output, syms);
-  A.print();
-  E.print();
-  f.print();
-  initalValues.print();
+  //A.print();
+  //E.print();
+  //f.print();
+  //initalValues.print();
     
   {
+    matrix<symbol> syms;
+    syms = {
+      {{symbol("e1")},
+       {symbol("e2")},
+       {symbol("iVs")},
+      },
+      1, 3
+    };
     Node* Node1 = new Node("e1");
     Node* Node2 = new Node("e2");
-    Node* Node3 = new Node("e3");
-    Node* Node4 = new Node("GND");
+    //Node* Node3 = new Node("e3");
+    Node* GND = new Node("GND");
 
 
     auto Vcc = std::make_shared<VoltageSource>("Vcc", 5.0);
     auto R1 = std::make_shared<Resistor>("R1", 10e3);
     auto R2 = std::make_shared<Resistor>("R2", 10e3);
-    auto C1 = std::make_shared<Capacitor>("C1", 10e-6);
-    auto C2 = std::make_shared<Capacitor>("C2", 10e-6);
+    //auto C1 = std::make_shared<Capacitor>("C1", 10e-6);
+    //auto C2 = std::make_shared<Capacitor>("C2", 10e-6);
 
 
     Node1->addComponent(Vcc);
     Node1->addComponent(R1);
     Node2->addComponent(R1);
-    Node2->addComponent(C1);
+    //Node2->addComponent(C1);
     Node2->addComponent(R2);
-    Node3->addComponent(R2);
-    Node3->addComponent(C2);
+    GND->addComponent(R2);
+    //Node3->addComponent(C2);
 
-    Node4->addComponent(C1);
-    Node4->addComponent(C2);
+    //Node4->addComponent(C1);
+    //Node4->addComponent(C2);
 
 
     std::cout << "From Circ" << std::endl;
     Circuit circuit;
     circuit.addNode(Node1);
     circuit.addNode(Node2);
-    circuit.addNode(Node3);
-    circuit.addNode(Node4);
+    //circuit.addNode(Node3);
+    circuit.addNode(GND);
     circuit.calculate();
 
     std::vector<double> time;
@@ -217,7 +251,8 @@ int main() {
     auto E = circuit.E;
     auto f = circuit.f;
     auto s = circuit.syms.data;
-    matrix<symbol> syms = {{{s[0]}, {s[1]}, {s[2]}}, circuit.syms.cols, circuit.syms.rows - 1};
+    circuit.syms.print();
+
     output.push_back(initalValues);
     double start_time = 0.0;
     time.push_back(start_time);
@@ -233,10 +268,9 @@ int main() {
     createOctavePlotFile(time, output, syms);
     delete Node1;
     delete Node2;
-    delete Node3;
-    delete Node4;
+    //delete Node3;
+    delete GND;
   }
   return 0;
   
 };
-

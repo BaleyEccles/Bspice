@@ -77,8 +77,95 @@ struct matrix {
     return output;
   };
 
-
+  double norm(double Ln) {
+    if (cols > 1) {
+      std::cerr << "TODO: Norm with more than one col is not implemented" << std::endl;
+    }
+    double norm = 0.0;
+    for (int row = 0; row < rows; ++row) {
+      norm += std::pow(data[row][0], Ln);
+    }
+    norm = std::pow(norm, 1/Ln);
+    return norm;
+  };
+  
+  double max() {
+    double max = 0.0;
+    for (int row = 0; row < rows; ++row) {
+      for (int col = 0; col < cols; ++col) {
+        if (data[row][col] > max) {
+          max = data[row][col];
+        }
+      }
+    }
+    return max;
+  }
   matrix<T> pseudoInvert() {
+    // Step 1: Compute SVD (this is a simplified version)
+    // For a full implementation, you would need to implement or use an SVD algorithm.
+    // Here, we will assume you have U, S, and V matrices from SVD.
+
+    // Placeholder for SVD results
+    std::vector<std::vector<T>> U(rows, std::vector<T>(rows, 0));
+    std::vector<T> S(std::min(rows, cols), 0);
+    std::vector<std::vector<T>> V(cols, std::vector<T>(cols, 0));
+
+    // For demonstration, let's assume we have the following SVD results:
+    // U = identity matrix, S = [1, 2, 0], V = identity matrix (for a 3x3 matrix)
+    for (int i = 0; i < std::min(rows, cols); ++i) {
+      U[i][i] = 1; // Identity matrix for U
+      S[i] = (i < 2) ? (i + 1) : 0; // Singular values
+      V[i][i] = 1; // Identity matrix for V
+    }
+
+    // Step 2: Compute the pseudo-inverse of S
+    std::vector<std::vector<T>> S_inv(cols, std::vector<T>(rows, 0));
+    for (int i = 0; i < S.size(); ++i) {
+      if (std::abs(S[i]) > 1e-10) { // Avoid division by zero
+        S_inv[i][i] = 1.0 / S[i];
+      }
+    }
+
+    // Step 3: Compute the pseudo-inverse: A^+ = V * S^+ * U^T
+    matrix<T> S_inv_matrix = {
+      S_inv,
+      cols, rows
+    };
+    matrix<T> U_transpose = {
+      U,
+      cols, rows
+    };
+    matrix<T> V_matrix = {
+      V,
+      cols, rows
+    };
+
+    // Compute V * S_inv
+    std::vector<std::vector<T>> VS_inv(V_matrix.rows, std::vector<T>(S_inv_matrix.cols, 0));
+    for (int i = 0; i < V_matrix.rows; ++i) {
+      for (int j = 0; j < S_inv_matrix.cols; ++j) {
+        for (int k = 0; k < V_matrix.cols; ++k) {
+          VS_inv[i][j] += V_matrix.data[i][k] * S_inv_matrix.data[k][j];
+        }
+      }
+    }
+
+    // Compute (V * S_inv) * U^T
+    std::vector<std::vector<T>> pseudo_inv(VS_inv.size(), std::vector<T>(U_transpose.cols, 0));
+    for (int i = 0; i < VS_inv.size(); ++i) {
+      for (int j = 0; j < U_transpose.cols; ++j) {
+        for (int k = 0; k < U_transpose.rows; ++k) {
+          pseudo_inv[i][j] += VS_inv[i][k] * U_transpose.data[k][j];
+        }
+      }
+    }
+    matrix<T> pinv = {
+      pseudo_inv,
+      cols, rows
+    };
+    return pinv;
+  }
+  matrix<T> pseudoInvert1() {
     std::vector<std::vector<T>> outputData(rows, std::vector<T>(cols, 0));
 
     for (int row = 0; row < rows; ++row) {
@@ -129,8 +216,8 @@ struct matrix {
       // Make the diagonal contain all 1s
       double diag = augmented[i][i];
       if (diag == 0) {
-        print();
-        std::cerr << "ERROR: Matrix is singular" << std::endl;
+        //print();
+        //std::cerr << "ERROR: matrix is singular" << std::endl;
       }
       for (int k = 0; k < 2 * n; k++) {
         augmented[i][k] /= diag;
