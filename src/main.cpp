@@ -55,7 +55,7 @@ matrix<double> AESolveNextState(matrix<double> E, matrix<double> A,
     if (delta.norm(2) < eps) {
       break;
     }
-    if (i >= maxIt - 3) {
+    if (i >= maxIt - 1) {
       std::cerr << "Newtons method did not converge" << std::endl;
       yn.print();
     }
@@ -114,10 +114,10 @@ matrix<double> y(matrix<symbol> syms, matrix<double> E, matrix<double> A,
       }
     }
     if (isZero) {
-      if (col != 3) { // FIXME: this is a botch to for the ground
-        std::cout << "col: " << col << std::endl;
-        DEcols.push_back(col);
-      }
+      //if (col != 3) { // FIXME: this is a botch to for the ground
+      //std::cout << "col: " << col << std::endl;
+      DEcols.push_back(col);
+      //}
     }
   }
   auto AEIdx = getAlgebraicEquations(E);
@@ -146,16 +146,18 @@ matrix<double> y(matrix<symbol> syms, matrix<double> E, matrix<double> A,
   }
   //A.print();
 
-  //std::cout << "new f:" << std::endl;
 
-  auto newf = add(f, DEnewNextState);
+
+  auto newf = subtract(f, DEnewNextState);
   i = 0;
   for (auto row : DEIdx) {
     newf.eliminateRow(row - i);
     i++;
   }
-
-
+  std::cout << "A" << std::endl;
+  A.print();
+  std::cout << "new f" << std::endl;
+  newf.print();
   auto AEnextState = AESolveNextState(E, A, newf, newf, h);
   // std::cout << "AE sols:" << std::endl;
   // AEnextState.print();
@@ -163,11 +165,13 @@ matrix<double> y(matrix<symbol> syms, matrix<double> E, matrix<double> A,
 
   i = 0;
   for (auto row : AEIdx) {
-    std::cout << row << std::endl;
+    //std::cout << row << std::endl;
     DEnextState.data[row][0] = AEnextState.data[i][0];
     i++;
   }
+  std::cout << "DE" << std::endl;
   DEnextState.print();
+  std::cout << "AE" << std::endl;
   AEnextState.print();
 
   return DEnextState;

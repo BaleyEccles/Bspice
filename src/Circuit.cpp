@@ -97,11 +97,17 @@ void Circuit::generateMatrices() {
           auto capacitor = dynamic_cast<Capacitor *>(c.get());
 
           if (node == c->Connections[0]) {
-            E.data[equationNumber][nodeLocation1] += capacitor->Capacitance;
-            E.data[equationNumber][nodeLocation2] += -capacitor->Capacitance;
+            if (c->Connections[0]->nodeName != "GND") {
+              E.data[equationNumber][nodeLocation1] += capacitor->Capacitance;
+            } if (c->Connections[1]->nodeName != "GND") {
+              E.data[equationNumber][nodeLocation2] += -capacitor->Capacitance;
+            }
           } else {
-            E.data[equationNumber][nodeLocation1] -= capacitor->Capacitance;
-            E.data[equationNumber][nodeLocation2] -= -capacitor->Capacitance;
+            if (c->Connections[0]->nodeName != "GND") {
+              E.data[equationNumber][nodeLocation1] -= capacitor->Capacitance;
+            } if (c->Connections[1]->nodeName != "GND") {
+              E.data[equationNumber][nodeLocation2] -= -capacitor->Capacitance;
+            }
           }
           break;
         }
