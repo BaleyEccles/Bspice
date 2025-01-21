@@ -36,31 +36,36 @@ matrix<double> DESolveNextState(matrix<double> E, matrix<double> A,
   return output;
 };
 
-matrix<double> AESolveNextState(matrix<double> E, matrix<double> A,
-                                matrix<double> f, matrix<double> yn, double h) {
+// solve matrix equtations of the form A x = F
+matrix<double> AESolveNextState(matrix<double> A, matrix<double> f, matrix<double> guess) {
   // Jacobian
   // For now we are only dealing with first order polynomials
   // So the Jacobian will be the same as A
-  //  A.print();
-  //  f.print();
-  //  yn.print();
-  int maxIt = 1000;
-  const double eps = 1e-6;
+  //matrix<double> DESolveNextState(matrix<double> E, matrix<double> A,
+  //                                matrix<double> f, matrix<double> yn, double h) {
+  int maxIt = 100000;
+  const double eps = 1e-4;
   for (int i = 0; i < maxIt; i++) {
-    auto F = subtract(multiply(A, yn), f);
+    // Jacobian == A, as we are dealing with first order polynomials
     auto J = A;
-    // d = -J(-1)*F
+    auto F = subtract(multiply(A, guess), f);
+      // d = -J(-1)*F
     auto delta = multiply(J.invert().scale(-1), F);
-    yn = add(yn, delta);
+    guess = add(guess, delta);
+
+    
     if (delta.norm(2) < eps) {
       break;
     }
     if (i >= maxIt - 1) {
       std::cerr << "Newtons method did not converge" << std::endl;
-      yn.print();
+      std::cout << "||delta||_2: " << std::scientific << std::setprecision(4) << delta.norm(2) << std::endl;
+      A.print("A = ");
+      F.print("F = ");
+      guess.print("Result = ");
     }
   }
-  return yn;
+  return guess;
 };
 
 std::vector<int> getDifferentialEquations(matrix<double> E) {
@@ -100,49 +105,183 @@ std::vector<int> getAlgebraicEquations(matrix<double> E) {
 
 matrix<double> y(matrix<symbol> syms, matrix<double> E, matrix<double> A,
                  matrix<double> f, matrix<double> yn, double h) {
-  auto DEIdx = getDifferentialEquations(E);
-  auto DEnextState = DESolveNextState(E, A, f, yn, h);
-  //std::cout << "DE sols:" << std::endl;
-  //DEnextState.print();
 
-  std::vector<int> DEcols;
+  auto DERowIdx = getDifferentialEquations(E);
+  int i = 0;
+  matrix<double> EDE = {std::vector<std::vector<double>>{}, 0, 0};
+  matrix<double> ADE = {std::vector<std::vector<double>>{}, 0, 0};
+  matrix<double> fDE = {std::vector<std::vector<double>>{}, 0, 0};
+  matrix<double> ynDE = {std::vector<std::vector<double>>{}, 0, 0};
+  matrix<symbol> symsDE = {std::vector<std::vector<symbol>>{}, 0, 0};
+  for (auto row : DERowIdx) {
+    EDE.data.push_back(E.getRow(row).transpose().data[0]);
+    EDE.rows++;
+    ADE.data.push_back(A.getRow(row).transpose().data[0]);
+    ADE.rows++;
+    fDE.data.push_back(f.getRow(row).transpose().data[0]);
+    fDE.rows++;
+    ynDE.data.push_back(yn.getRow(row).transpose().data[0]);
+    ynDE.rows++;
+    symsDE.data.push_back(syms.getRow(row).transpose().data[0]);
+    symsDE.rows++;
+    i++;
+  }
+  EDE.cols = E.cols;
+  ADE.cols = A.cols;
+  fDE.cols = f.cols;
+  ynDE.cols = yn.cols;
+
+  std::vector<int> AEColIdx;
+  for (int col = 0; col < E.cols; col++) {
+    bool isZero = true;
+    for (int row = 0; row < E.rows; row++) {
+      if (E.data[row][col] != 0.0) {
+        isZero = false;
+      }
+    }
+    if (isZero) {
+      AEColIdx.push_back(col);
+    }
+  }
+  i = 0;
+  for (auto col : AEColIdx) {
+    EDE.eliminateCol(col - i);
+    i++;
+  }
+  //std::cout << "E:" << std::endl;
+  //EDE.print();
+  //std::cout << "A:" << std::endl;
+  //ADE.print();
+  //std::cout << "f:" << std::endl;
+  //fDE.print();
+  // Should be:
+  // E = [ C 0
+  //       0 C ]
+
+  // xn1   = E(-1)(f - A xn) h
+  //std::cout << "ynDE" << std::endl;
+  //yn.print("yn");
+  //ADE.print("ADE");
+  auto a = multiply(EDE.invert(), subtract(fDE, multiply(ADE, yn))).scale(h);
+  //multiply(EDE.invert(), subtract(fDE, multiply(ADE, yn))).print("multiply");
+  //multiply(EDE.invert(), subtract(fDE, multiply(ADE, yn))).scale(h).print("mult inv");
+  //a.print();
+  auto xn1 = add(a, ynDE);
+  //ynDE.print("ynDE");
+  //xn1.print("xn1");
+  // Now we know e2(n+1) and e3(n+1)
+  // pad xn1 with zeros so we have it of the form [ 0 e2 e3 0 0]T
+  matrix<double> xn1New = {std::vector<std::vector<double>>(
+                               syms.rows, std::vector<double>(syms.cols, 0.0)),
+                           syms.cols, syms.rows};
+  i = 0;
+  for (auto row : DERowIdx) {
+    xn1New.data[row][0] = xn1.data[i][0];
+    i++;
+  }
+  //xn1New.print();
+  // AE Equations
+  matrix<double> An1 = A;
+  //A.print();
+  i = 0;
+  for (auto row : DERowIdx) {
+    An1.eliminateRow(row - i);
+    i++;
+  }
+  //An1.print();
+
+  std::vector<int> DEColIdx;
   for (int col = 0; col < E.cols; col++) {
     bool isZero = false;
-    for (auto DEidx : DEIdx) {
-      if (E.data[DEidx][col] != 0.0) {
+    for (int row = 0; row < E.rows; row++) {
+      if (E.data[row][col] != 0.0) {
         isZero = true;
       }
     }
     if (isZero) {
-      //if (col != 3) { // FIXME: this is a botch to for the ground
-      //std::cout << "col: " << col << std::endl;
-      DEcols.push_back(col);
-      //}
+      DEColIdx.push_back(col);
     }
   }
+  
+  auto An = An1;
+  i = 0;
+  for (auto col : DEColIdx) {
+    An.eliminateCol(col - i);
+    i++;
+  }
+  // Now we need to solve the equation:
+  // An xn = f - An1 xn1
+  //std::cout << "An:" << std::endl;
+  //An.print();
+  //std::cout << "f:" << std::endl;
+  i = 0;
+  for (auto row : DERowIdx) {
+    f.eliminateRow(row - i);
+    i++;
+  }
+  //f.print();
+  //An1.print();
+  //xn1New.print();
+  auto An1xn1 = multiply(An1, xn1New);
+  //An1xn1.print();
+  auto newf = subtract(f, An1xn1);
+  //newf.print();
+
+  auto NewtonGuess = yn;
+  i = 0;
+  for (auto row : DERowIdx) {
+    NewtonGuess.eliminateRow(row - i);
+    i++;
+  }
+  auto AEsols = AESolveNextState(An, newf, NewtonGuess);
+  //std::cout << "AE sols:" << std::endl;
+  //AEsols.print();
+
+  matrix<double> AEsolsNew = {
+      std::vector<std::vector<double>>(syms.rows,
+                                       std::vector<double>(syms.cols, 0.0)),
+      syms.cols, syms.rows};
+  auto AERowIdx = getAlgebraicEquations(E);
+  i = 0;
+  for (auto row : AERowIdx) {
+    AEsolsNew.data[row][0] = AEsols.data[i][0];
+    i++;
+  }
+  // AEsolsNew.print();
+  auto output = add(AEsolsNew, xn1New);
+  //output.print();
+  return output;
+  // Now we have both the DE and AE solutions in AEsols and xn1
+  
+  
+  /*auto DEnextState = DESolveNextState(E, A, f, yn, h);
+  //std::cout << "DE sols:" << std::endl;
+  //DEnextState.print();
+
+
   auto AEIdx = getAlgebraicEquations(E);
 
   matrix<double> DEnewNextState = {
-    std::vector<std::vector<double>>(f.rows, std::vector<double>(f.cols, 0)),
-    f.cols,
-    f.rows
+  std::vector<std::vector<double>>(f.rows, std::vector<double>(f.cols, 0)),
+  f.cols,
+  f.rows
   };
-  
+
   for (auto varible : DEcols) {
-    DEnewNextState.data[varible][0] = DEnextState.data[varible][0];
+  DEnewNextState.data[varible][0] = DEnextState.data[varible][0];
   }
 
   int i = 0;
   for (auto row : DEIdx) {
-    A.eliminateRow(row - i);
-    i++;
+  A.eliminateRow(row - i);
+  i++;
   }
 
 
   i = 0;
   for (auto col : DEcols) {
-    A.eliminateCol(col - i);
-    i++;
+  A.eliminateCol(col - i);
+  i++;
   }
   //A.print();
 
@@ -151,8 +290,8 @@ matrix<double> y(matrix<symbol> syms, matrix<double> E, matrix<double> A,
   auto newf = subtract(f, DEnewNextState);
   i = 0;
   for (auto row : DEIdx) {
-    newf.eliminateRow(row - i);
-    i++;
+  newf.eliminateRow(row - i);
+  i++;
   }
   std::cout << "A" << std::endl;
   A.print();
@@ -161,20 +300,21 @@ matrix<double> y(matrix<symbol> syms, matrix<double> E, matrix<double> A,
   auto AEnextState = AESolveNextState(E, A, newf, newf, h);
   // std::cout << "AE sols:" << std::endl;
   // AEnextState.print();
-  
+
 
   i = 0;
   for (auto row : AEIdx) {
-    //std::cout << row << std::endl;
-    DEnextState.data[row][0] = AEnextState.data[i][0];
-    i++;
+  //std::cout << row << std::endl;
+  DEnextState.data[row][0] = AEnextState.data[i][0];
+  i++;
   }
   std::cout << "DE" << std::endl;
   DEnextState.print();
   std::cout << "AE" << std::endl;
   AEnextState.print();
 
-  return DEnextState;
+  return DEnextState;*/
+  return xn1;
 };
 
 void createOctavePlotFile(std::vector<double> &time,
@@ -339,7 +479,7 @@ int main() {
     for (int i = 0; i < 2000; i++) {
       double tn = i * h - h;
       matrix<double> yn = output[output.size() - 1];
-      auto outputs = y(syms, E, A, f, yn, h);
+      auto outputs = y(s, E, A, f, yn, h);
       output.push_back(outputs);
       time.push_back(tn);
     };
