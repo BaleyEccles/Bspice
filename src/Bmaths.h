@@ -20,9 +20,9 @@ struct matrix {
 
   matrix<T> scale(double scale) {
     std::vector<std::vector<T>> outputData(rows, std::vector<T>(cols, 0));
-    for (int i = 0; i < rows; ++i) {
-      for (int j = 0; j < cols; ++j) {
-        outputData[j][i] = scale*data[j][i];
+    for (int row = 0; row < rows; ++row) {
+      for (int col = 0; col < cols; ++col) {
+        outputData[row][col] = scale*data[row][col];
       }
     }
     matrix<T> output = {
@@ -66,13 +66,14 @@ struct matrix {
       cols, rows
     };
   }
-  
-  void print() {
+
+  void print(std::string name = "") {
+    if (name != "") std::cout << name << std::endl;
     for (int i = 0; i < rows; i++) {
       for (int j = 0; j < cols; j++) {
         if constexpr (std::is_arithmetic<T>::value) {
           // If T is an arithmetic type (int, float, double, etc.)
-          std::cout << std::fixed << std::setprecision(5) << data[i][j] << " ";
+          std::cout << std::fixed << std::setprecision(10) << data[i][j] << " ";
         } else if constexpr (std::is_same<T, symbol>::value) {
           // If T is a string
           std::cout << data[i][j].name << " ";
