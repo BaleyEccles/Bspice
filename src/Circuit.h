@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "Bmaths.h"
+#include "Bmaths/Bmaths.h"
 
 enum ComponentType {
   VOLTAGESOURCE = 0,
