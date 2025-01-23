@@ -8,7 +8,7 @@ void matrix<T>::print(std::string name) {
     for (int j = 0; j < cols; j++) {
       if constexpr (std::is_arithmetic<T>::value) {
         // If T is an arithmetic type (int, float, double, etc.)
-        std::cout << std::fixed << std::setprecision(10) << data[i][j] << " ";
+        std::cout << std::fixed << std::setprecision(5) << data[i][j] << " ";
       } else if constexpr (std::is_same<T, symbol>::value) {
         // If T is a string
         std::cout << data[i][j].name << " ";
@@ -73,8 +73,7 @@ matrix<T> matrix<T>::eliminateCol(int col) {
   };
 }
 
-template <typename T>
-matrix<T> matrix<T>::transpose() {
+template <typename T> matrix<T> matrix<T>::transpose() {
   std::vector<std::vector<T>> outputVec(cols, std::vector<T>(rows));
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < cols; col++) {

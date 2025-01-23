@@ -60,9 +60,11 @@ class Circuit {
  public:
   Circuit();
   // Main things
-  void addNode(Node* node);
+  void addNode(Node *node);
+  void addComponent(std::shared_ptr<Component> component);
   void calculate();
-  std::vector<Node*> nodes;
+  std::vector<Node *> nodes;
+  std::vector<std::shared_ptr<Component>> components;
 
   // Data 
   std::vector<double> time;
@@ -79,5 +81,6 @@ private:
   int findNodeLocationFromNode(Node* node);
   int findNodeLocationFromSymbol(std::string symName);
   void generateComponentConections();
+  int findEquationLocationFromSymbol(std::string s);
 
 };
