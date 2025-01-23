@@ -36,7 +36,7 @@ void createOctavePlotFile(std::vector<double> &time,
     }
   }
   file << ("];\n");
-  
+
   for (int j = 0; j < names.rows; j++) {
     file << ("figure(" + std::to_string(j + 1) + ");\n");
     file << ("plot(t, " + names.data[j][0].name + ");\n");
@@ -66,7 +66,6 @@ int main() {
   auto R1 = std::make_shared<Resistor>("R1", 10);
   auto L1 = std::make_shared<Inductor>("L1", 1);
 
-
   Node1->addComponent(Vcc);
   Node1->addComponent(R1);
 
@@ -82,13 +81,11 @@ int main() {
   circuit.addNode(GND);
   circuit.calculate();
 
-
   auto initalValues = circuit.initalValues;
   auto A = circuit.A;
   auto E = circuit.E;
   auto f = circuit.f;
   auto s = circuit.syms;
-
 
   double timeStep = 0.001;
   double endTime = 1.0;

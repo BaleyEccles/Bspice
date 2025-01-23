@@ -10,7 +10,7 @@ Capacitor::Capacitor(const std::string &Name, double Value)
     : Component(Name, ComponentType::CAPACITOR), Capacitance(Value) {}
 
 Inductor::Inductor(const std::string &Name, double Value)
-  : Component(Name, ComponentType::INDUCTOR), Inductance(Value) {}
+    : Component(Name, ComponentType::INDUCTOR), Inductance(Value) {}
 
 VoltageSource::VoltageSource(const std::string &Name, double Value)
     : Component(Name, ComponentType::VOLTAGESOURCE), Voltage(Value) {}
@@ -32,25 +32,11 @@ void Circuit::calculate() {
   generateComponentConections();
   generateMatrices();
 
-  //  A = {
-  //    {{0.00010, -0.00010, 1.00000},
-  //     {-0.00010, 0.00020, 0.0},
-  //     {1.00000, 0.00000, 0.00000}},
-  //    3, 3
-  //  };
-  //  f = {
-  //    {{0},
-  //     {0},
-  //     {5}
-  //    },
-  //    1, 3
-  //  };
-
-  A.print("A");
-  E.print("E");
-  f.print("f");
-  syms.print("syms");
-  initalValues.print("IVs");
+  A.print("A:");
+  E.print("E:");
+  f.print("f:");
+  syms.print("syms:");
+  initalValues.print("Inital Values:");
 }
 
 void Circuit::generateMatrices() {
@@ -58,7 +44,6 @@ void Circuit::generateMatrices() {
   int equationNumber = 0;
   for (auto node : nodes) {
     if (node->nodeName != "GND") {
-      // A.print();
       for (auto c : node->components) {
         switch (c->Type) {
         case ComponentType::RESISTOR: {
@@ -98,13 +83,15 @@ void Circuit::generateMatrices() {
           if (node == c->Connections[0]) {
             if (c->Connections[0]->nodeName != "GND") {
               E.data[equationNumber][nodeLocation1] += capacitor->Capacitance;
-            } if (c->Connections[1]->nodeName != "GND") {
+            }
+            if (c->Connections[1]->nodeName != "GND") {
               E.data[equationNumber][nodeLocation2] += -capacitor->Capacitance;
             }
           } else {
             if (c->Connections[0]->nodeName != "GND") {
               E.data[equationNumber][nodeLocation1] -= capacitor->Capacitance;
-            } if (c->Connections[1]->nodeName != "GND") {
+            }
+            if (c->Connections[1]->nodeName != "GND") {
               E.data[equationNumber][nodeLocation2] -= -capacitor->Capacitance;
             }
           }
@@ -118,8 +105,9 @@ void Circuit::generateMatrices() {
             std::cerr << "ERROR: Capacitor " << c->ComponentName
                       << " has not got enough connections" << std::endl;
           }
-          int currentLocation = findNodeLocationFromSymbol("i_" + c->ComponentName);
-          
+          int currentLocation =
+              findNodeLocationFromSymbol("i_" + c->ComponentName);
+
           int nodeLocation1 = findNodeLocationFromNode(c->Connections[0]);
           int nodeLocation2 = findNodeLocationFromNode(c->Connections[1]);
           auto inductor = dynamic_cast<Inductor *>(c.get());
@@ -145,14 +133,9 @@ void Circuit::generateMatrices() {
               E.data[currentLocation][currentLocation] += inductor->Inductance;
             }
           }
-          
-
-            
-          
           break;
         }
         case ComponentType::VOLTAGESOURCE: {
-          // FIXME: deal with more than one node per voltage
           int nodeLocation1 = findNodeLocationFromNode(c->Connections[0]);
           int nodeLocationCurrent =
               findNodeLocationFromSymbol("i_" + c->ComponentName);
@@ -164,7 +147,7 @@ void Circuit::generateMatrices() {
           f.data[nodeLocationCurrent][0] += voltageSource->Voltage;
 
           break;
-        } // TODO: add other components
+        }
         default: {
           std::cerr << "ERROR: Component of type: " << c->Type
                     << " and name: " << c->ComponentName << " was not handled"
@@ -172,8 +155,8 @@ void Circuit::generateMatrices() {
         }
         }
       }
-    } else { // node == GND
-      int GNDLocation = findNodeLocationFromNode(node);
+    } else {
+      int GNDLocation = findNodeLocationFromNode(node); // node == GND
       A.data[equationNumber][GNDLocation] = 1;
     }
     equationNumber++;
@@ -229,14 +212,15 @@ void Circuit::generateSymbols() {
   }
   if (hasGround == false) {
     std::cerr << "ERROR: Circuit has no ground connection, please define a "
-      "node with the name \"GND\""
+                 "node with the name \"GND\""
               << std::endl;
   }
   syms.rows = syms.data.size();
   syms.cols = 1;
   for (auto node : nodes) {
     for (auto c : node->components) {
-      if (c->Type == ComponentType::VOLTAGESOURCE || c->Type == ComponentType::INDUCTOR) {
+      if (c->Type == ComponentType::VOLTAGESOURCE ||
+          c->Type == ComponentType::INDUCTOR) {
         symbol componetCurrent = symbol("i_" + c->ComponentName);
         auto symsTransposed = syms.transpose();
         auto it = std::find(symsTransposed.data[0].begin(),
@@ -251,7 +235,6 @@ void Circuit::generateSymbols() {
   }
   syms.rows = syms.data.size();
   syms.cols = 1;
-  syms.print();
 }
 
 void Circuit::preAllocateMatrixData() {
