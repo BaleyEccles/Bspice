@@ -14,6 +14,9 @@ struct symbol {
   std::string name;
   symbol(const std::string& n);
   symbol() : name("NULL") {}
+  bool operator==(const symbol& other) const {
+    return other.name == name;
+  }
 };
 
 

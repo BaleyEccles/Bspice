@@ -12,7 +12,7 @@ void createOctavePlotFile(std::vector<double> &time,
                           std::vector<matrix<double>> &data,
                           matrix<symbol> &names) {
   if (data.size() != time.size()) {
-    std::cerr << "Time and data have different sizes" << std::endl;
+    std::cerr << "ERROR: Time and data have different sizes" << std::endl;
   }
 
   std::string filename = "plotData.m";
@@ -59,41 +59,34 @@ int main() {
   Node *Node1 = new Node("e1");
   Node *Node2 = new Node("e2");
   Node *Node3 = new Node("e3");
-  Node *Node4 = new Node("e4");
   Node *GND = new Node("GND");
 
   auto Vcc = std::make_shared<VoltageSource>("Vcc", 5.0);
   auto R1 = std::make_shared<Resistor>("R1", 10e3);
-  auto R2 = std::make_shared<Resistor>("R2", 10e3);
-  auto R3 = std::make_shared<Resistor>("R3", 10e3);
+  auto R2 = std::make_shared<Resistor>("R2", 10);  
   auto C1 = std::make_shared<Capacitor>("C1", 10e-6);
-  auto C2 = std::make_shared<Capacitor>("C2", 10e-6);
-  auto C3 = std::make_shared<Capacitor>("C3", 10e-6);
+
 
   Node1->addComponent(Vcc);
   Node1->addComponent(R1);
 
   Node2->addComponent(R1);
   Node2->addComponent(C1);
-  Node2->addComponent(R2);
 
+  Node3->addComponent(C1);
   Node3->addComponent(R2);
-  Node3->addComponent(C2);
-  Node3->addComponent(R3);
-
-  Node4->addComponent(R3);
-  Node4->addComponent(C3);
-    
-  GND->addComponent(C1);
-  GND->addComponent(C2);
-  GND->addComponent(C3);
+  
+  GND->addComponent(R2);
 
   std::cout << "From Circ" << std::endl;
   Circuit circuit;
+  circuit.addComponent(Vcc);
+  circuit.addComponent(R1);
+  circuit.addComponent(R2);
+  circuit.addComponent(C1);
   circuit.addNode(Node1);
   circuit.addNode(Node2);
   circuit.addNode(Node3);
-  circuit.addNode(Node4);
   circuit.addNode(GND);
   circuit.calculate();
 
@@ -103,7 +96,11 @@ int main() {
   auto E = circuit.E;
   auto f = circuit.f;
   auto s = circuit.syms;
-
+  A.print("A");
+  E.print("E");
+  f.print("f");
+  s.print("s");
+   
 
   double timeStep = 0.001;
   double endTime = 5.0;

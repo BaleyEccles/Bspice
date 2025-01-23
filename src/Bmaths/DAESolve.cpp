@@ -81,8 +81,15 @@ matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f,
     EDE.eliminateCol(col - i);
     i++;
   }
-  
-  auto xn1 = add(multiply(EDE.invert(), subtract(fDE, multiply(ADE, yn))).scale(timeStep), ynDE);
+  ADE.print("A");
+  EDE.print("E");
+  fDE.print("f");
+  yn.print("yn");
+  ynDE.print("ynDE");
+  auto xn1 = add(
+      multiply(EDE.invert(), subtract(fDE, multiply(ADE, yn))).scale(timeStep),
+      ynDE);
+  xn1.print("xn1");
 
   matrix<double> xn1New = {std::vector<std::vector<double>>(f.rows, std::vector<double>(f.cols, 0.0)), f.cols, f.rows};
   i = 0;
