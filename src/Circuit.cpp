@@ -9,6 +9,9 @@ Resistor::Resistor(const std::string &Name, double Value)
 Capacitor::Capacitor(const std::string &Name, double Value)
     : Component(Name, ComponentType::CAPACITOR), Capacitance(Value) {}
 
+Inductor::Inductor(const std::string &Name, double Value)
+  : Component(Name, ComponentType::INDUCTOR), Inductance(Value) {}
+
 VoltageSource::VoltageSource(const std::string &Name, double Value)
     : Component(Name, ComponentType::VOLTAGESOURCE), Voltage(Value) {}
 
@@ -43,15 +46,11 @@ void Circuit::calculate() {
   //    1, 3
   //  };
 
-  std::cout << "A:" << std::endl;
-  A.print();
-  std::cout << "E:" << std::endl;
-  E.print();
-  std::cout << "f:" << std::endl;
-  f.print();
-  std::cout << "Inital Values:" << std::endl;
-
-  initalValues.print();
+  A.print("A");
+  E.print("E");
+  f.print("f");
+  syms.print("syms");
+  initalValues.print("IVs");
 }
 
 void Circuit::generateMatrices() {
@@ -109,6 +108,47 @@ void Circuit::generateMatrices() {
               E.data[equationNumber][nodeLocation2] -= -capacitor->Capacitance;
             }
           }
+          break;
+        }
+        case ComponentType::INDUCTOR: {
+          if (c->Connections.size() > 2) {
+            std::cerr << "ERROR: Capacitor " << c->ComponentName
+                      << " has too many connections" << std::endl;
+          } else if (c->Connections.size() < 2) {
+            std::cerr << "ERROR: Capacitor " << c->ComponentName
+                      << " has not got enough connections" << std::endl;
+          }
+          int currentLocation = findNodeLocationFromSymbol("i_" + c->ComponentName);
+          
+          int nodeLocation1 = findNodeLocationFromNode(c->Connections[0]);
+          int nodeLocation2 = findNodeLocationFromNode(c->Connections[1]);
+          auto inductor = dynamic_cast<Inductor *>(c.get());
+
+          // Unsure how right this is, but it works for the simple case
+          if (node == c->Connections[0]) {
+            if (c->Connections[0]->nodeName != "GND") {
+              A.data[equationNumber][currentLocation] += 1;
+            }
+          } else {
+            if (c->Connections[0]->nodeName != "GND") {
+              A.data[equationNumber][currentLocation] -= 1;
+            }
+          }
+          if (node == c->Connections[0]) {
+            if (c->Connections[0]->nodeName != "GND") {
+              A.data[currentLocation][nodeLocation1] += 1;
+              E.data[currentLocation][currentLocation] -= inductor->Inductance;
+            }
+          } else {
+            if (c->Connections[0]->nodeName != "GND") {
+              A.data[currentLocation][nodeLocation1] -= 1;
+              E.data[currentLocation][currentLocation] += inductor->Inductance;
+            }
+          }
+          
+
+            
+          
           break;
         }
         case ComponentType::VOLTAGESOURCE: {
@@ -189,20 +229,29 @@ void Circuit::generateSymbols() {
   }
   if (hasGround == false) {
     std::cerr << "ERROR: Circuit has no ground connection, please define a "
-                 "node with the name \"GND\""
+      "node with the name \"GND\""
               << std::endl;
   }
-  // FIXME: We need to deal with voltage sources in a more elegent way
+  syms.rows = syms.data.size();
+  syms.cols = 1;
   for (auto node : nodes) {
     for (auto c : node->components) {
+      if (c->Type == ComponentType::VOLTAGESOURCE || c->Type == ComponentType::INDUCTOR) {
+        symbol componetCurrent = symbol("i_" + c->ComponentName);
+        auto symsTransposed = syms.transpose();
+        auto it = std::find(symsTransposed.data[0].begin(),
+                            symsTransposed.data[0].end(), componetCurrent);
 
-      if (c->Type == ComponentType::VOLTAGESOURCE) {
-        syms.data.push_back({symbol("i_" + c->ComponentName)});
+        if (it == symsTransposed.data[0].end()) {
+          syms.data.push_back({componetCurrent});
+          syms.rows++;
+        }
       }
     }
   }
   syms.rows = syms.data.size();
   syms.cols = 1;
+  syms.print();
 }
 
 void Circuit::preAllocateMatrixData() {

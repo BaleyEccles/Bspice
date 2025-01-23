@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <algorithm>
 #include "Bmaths/Bmaths.h"
 
 enum ComponentType {
@@ -33,6 +34,12 @@ class Capacitor : public Component {
  public:
   Capacitor(const std::string& Name, double Value);
   double Capacitance;
+};
+
+class Inductor : public Component {
+ public:
+  Inductor(const std::string& Name, double Value);
+  double Inductance;
 };
 
 class VoltageSource : public Component {

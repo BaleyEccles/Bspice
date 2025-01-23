@@ -63,37 +63,22 @@ int main() {
   Node *GND = new Node("GND");
 
   auto Vcc = std::make_shared<VoltageSource>("Vcc", 5.0);
-  auto R1 = std::make_shared<Resistor>("R1", 10e3);
-  auto R2 = std::make_shared<Resistor>("R2", 10e3);
-  auto R3 = std::make_shared<Resistor>("R3", 10e3);
-  auto C1 = std::make_shared<Capacitor>("C1", 10e-6);
-  auto C2 = std::make_shared<Capacitor>("C2", 10e-6);
-  auto C3 = std::make_shared<Capacitor>("C3", 10e-6);
+  auto R1 = std::make_shared<Resistor>("R1", 10);
+  auto L1 = std::make_shared<Inductor>("L1", 1);
+
 
   Node1->addComponent(Vcc);
   Node1->addComponent(R1);
 
   Node2->addComponent(R1);
-  Node2->addComponent(C1);
-  Node2->addComponent(R2);
+  Node2->addComponent(L1);
 
-  Node3->addComponent(R2);
-  Node3->addComponent(C2);
-  Node3->addComponent(R3);
-
-  Node4->addComponent(R3);
-  Node4->addComponent(C3);
-    
-  GND->addComponent(C1);
-  GND->addComponent(C2);
-  GND->addComponent(C3);
+  GND->addComponent(L1);
 
   std::cout << "From Circ" << std::endl;
   Circuit circuit;
   circuit.addNode(Node1);
   circuit.addNode(Node2);
-  circuit.addNode(Node3);
-  circuit.addNode(Node4);
   circuit.addNode(GND);
   circuit.calculate();
 
@@ -106,7 +91,7 @@ int main() {
 
 
   double timeStep = 0.001;
-  double endTime = 5.0;
+  double endTime = 1.0;
   auto output = DAESolve(A, E, f, initalValues, timeStep, endTime);
   createOctavePlotFile(output.first, output.second, s);
   delete Node1;
