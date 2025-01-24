@@ -4,7 +4,7 @@ Component::Component(const std::string &Name, ComponentType Type)
     : ComponentName(Name), Type(Type) {}
 
 Resistor::Resistor(const std::string &Name, double Value)
-    : Component(Name, ComponentType::RESISTOR), Resistance(Value) {}
+  : Component(Name, ComponentType::RESISTOR), Resistance(Value) {}
 
 Capacitor::Capacitor(const std::string &Name, double Value)
     : Component(Name, ComponentType::CAPACITOR), Capacitance(Value) {}
