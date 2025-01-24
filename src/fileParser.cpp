@@ -1,19 +1,20 @@
 #include "fileParser.h"
 
 namespace fileParser {
-  Circuit parseFile(const std::string& filename ) {
+  std::vector<std::shared_ptr<token>> parseFile(const std::string& filename ) {
     std::ifstream file(filename);
     std::string line;
     std::vector<std::shared_ptr<token>> tokens;
     if (file.is_open()) {
       while (std::getline(file, line)) {
-        auto lineTokens = tokenize(line);
-        tokens.insert(tokens.end(), lineTokens.begin(), lineTokens.end());
+        auto lineTokens = tokenize(line, tokens);
+        tokens = lineTokens;
       }
       file.close();
     } else {
       std::cerr << "Unable to open file" << std::endl;
     }
+    //std::cout << tokens.size() << std::endl;
     return tokens;
   }
 
@@ -109,6 +110,8 @@ namespace fileParser {
     component->addName(name);
     component->addValue(value);
     tokens.push_back(component);
+    //std::cout << "added comp " << name << std::endl;
+    //std::cout << tokens.size() << std::endl;
   }
 
   std::shared_ptr<nodeToken> getNode(const std::string &line) {
@@ -122,10 +125,24 @@ namespace fileParser {
       std::cerr << "ERROR: Nodes must have N + 1 inputs." << std::endl;
       std::cerr << "\tEX: node{NAME}{COMPONENT_1}{COMPONENT_2}...{COMPONENT_N}" << std::endl;
     }
-    std::string name = getName(inputs[0]);
-    node->addName(name);
-    std::vector<std::string> components(inputs.begin() + 1, inputs.end());
-    node->addComponents(components);
+    std::string nodeName = getName(inputs[0]);
+    node->addName(nodeName);
+    std::vector<std::string> componentNames(inputs.begin() + 1, inputs.end());
+    std::vector<std::shared_ptr<token>> componentTokens;
+
+    //std::cout << tokens.size() << std::endl;
+    for (auto& token : tokens) {
+      if (token->type == fileParser::token::COMPONENT) {
+        auto componentToken = dynamic_cast<fileParser::componentToken *>(token.get());
+        auto itComponent = std::find(componentNames.begin(), componentNames.end(), componentToken->name);
+        auto itDuplicate = std::find(componentTokens.begin(), componentTokens.end(), token);
+        if(itComponent != componentNames.end() && itDuplicate == componentTokens.end()) {
+          componentTokens.push_back(token);
+          //std::cout << nodeName << " contains the component " << componentToken->name << std::endl;
+        }
+      }
+    }
+    node->addComponents(componentTokens);
     tokens.push_back(node);
   }
 
@@ -187,10 +204,9 @@ namespace fileParser {
     return token == "plot";
   }
 
-  std::vector<std::shared_ptr<token>> tokenize(const std::string& line) {
+  std::vector<std::shared_ptr<token>> tokenize(const std::string& line, std::vector<std::shared_ptr<token>> tokens) {
     std::istringstream stream(line);
     std::string currentToken;
-    std::vector<std::shared_ptr<token>> tokens;
     for (char c : line) {
       currentToken = currentToken + c;
       if (tokenIsKeyWord(currentToken)) {

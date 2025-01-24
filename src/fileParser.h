@@ -5,6 +5,7 @@
 #include "Circuit.h"
 
 namespace fileParser {
+  class token;
   std::vector<std::shared_ptr<token>> parseFile(const std::string& filename);
 
   class token {
@@ -48,9 +49,9 @@ namespace fileParser {
   public:
     nodeToken();
     std::string name;
-    std::vector<std::string> components;
+    std::vector<std::shared_ptr<token>> components;
     inline void addName(std::string componentName) {name = componentName;};
-    inline void addComponents(std::vector<std::string> connectedComponents) {components = connectedComponents;};
+    inline void addComponents(std::vector<std::shared_ptr<token>> connectedComponents) {components = connectedComponents;};
   };
 
   class plotToken : public token {
@@ -59,7 +60,8 @@ namespace fileParser {
     std::string name;
     inline void addPlot(std::string plotName) {name = plotName;};
   };
-  std::vector<std::shared_ptr<token>> tokenize(const std::string& line);
+  std::vector<std::shared_ptr<token>> tokenize(const std::string& line, std::vector<std::shared_ptr<token>> tokens);
+
   
   std::vector<std::string> getInputs(const std::string &line);
   
