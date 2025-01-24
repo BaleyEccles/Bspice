@@ -1,4 +1,4 @@
-CPP_FILES = src/main.cpp src/Bmaths/Bmaths.cpp src/Bmaths/AlgebraicEquationSolver.cpp src/Bmaths/DifferentialEquationSolver.cpp src/Bmaths/DAESolve.cpp src/Circuit.cpp
+CPP_FILES = src/main.cpp src/Bmaths/Bmaths.cpp src/Bmaths/AlgebraicEquationSolver.cpp src/Bmaths/DifferentialEquationSolver.cpp src/Bmaths/DAESolve.cpp src/Circuit.cpp src/fileParser.cpp
 
 run: build
 	./main
