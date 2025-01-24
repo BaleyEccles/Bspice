@@ -100,7 +100,7 @@ Circuit createCircuitFromTokens(std::vector<std::shared_ptr<fileParser::token>> 
 }
 
 int main() {
-  std::vector<std::shared_ptr<fileParser::token>> tokens = fileParser::parseFile("example.circuit");
+  std::vector<std::shared_ptr<fileParser::token>> tokens = fileParser::parseFile("Examples/inductor.circuit");
   Circuit circuit = createCircuitFromTokens(tokens);
   circuit.calculate();
   auto initalValues = circuit.initalValues;

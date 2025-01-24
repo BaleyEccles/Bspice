@@ -140,11 +140,13 @@ namespace fileParser {
     if (line.substr(0, currentSource.size()) == currentSource) {
       return std::make_shared<componentToken>(CURRENTSOURCE);
     }
+    std::cerr << "ERROR: Component not found" << std::endl;
     return 0;
   }
 
   void addComponent(std::vector<std::shared_ptr<token>>& tokens, const std::string &line) {
     std::shared_ptr<componentToken> component = getComponent(line);
+
     std::vector<std::string> inputs = getInputs(line);
     if (inputs.size() != 2) {
       // FIXME: When we add opams, bjts, etc this must change
@@ -152,6 +154,7 @@ namespace fileParser {
       std::cerr << "\tEX: COMPONENT{NAME}{VALUE}" << std::endl;
     }
     std::string name = getName(inputs[0]);
+    //std::cout << name << std::endl;
     double value = getValue(inputs[1]);
     component->addName(name);
     component->addValue(value);
@@ -174,8 +177,24 @@ namespace fileParser {
     std::string nodeName = getName(inputs[0]);
     node->addName(nodeName);
     std::vector<std::string> componentNames(inputs.begin() + 1, inputs.end());
-    std::vector<std::shared_ptr<token>> componentTokens;
 
+
+    for (auto& name : componentNames) {
+      auto it = std::find_if(tokens.begin(), tokens.end(), [&name](const std::shared_ptr<fileParser::token>& t) {
+        if (t->type == fileParser::token::COMPONENT) {
+          auto componentToken = dynamic_cast<fileParser::componentToken*>(t.get());
+          return componentToken && componentToken->name == name;
+        }
+        return false;
+      });
+
+  
+      if (it == tokens.end()) {
+        std::cerr << "ERROR: Component `" << name << "` not defined." << std::endl;
+      }
+    }
+
+      std::vector<std::shared_ptr<token>> componentTokens;
     //std::cout << tokens.size() << std::endl;
     for (auto& token : tokens) {
       if (token->type == fileParser::token::COMPONENT) {
@@ -188,6 +207,8 @@ namespace fileParser {
         }
       }
     }
+
+    
     node->addComponents(componentTokens);
     tokens.push_back(node);
   }
@@ -255,6 +276,7 @@ namespace fileParser {
     std::string currentToken;
     for (char c : line) {
       currentToken = currentToken + c;
+
       if (tokenIsKeyWord(currentToken)) {
         addKeyWord(tokens, line);
       } else if (tokenIsComponent(currentToken)) {
