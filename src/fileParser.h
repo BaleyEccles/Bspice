@@ -66,7 +66,7 @@ namespace fileParser {
   std::vector<std::string> getInputs(const std::string &line);
   
   std::string getName(const std::string &name);
-  double getValue(const std::string &value);
+  double getValue(std::string &value);
 
   
   void addComponent(std::vector<std::shared_ptr<token>>& tokens, const std::string &line);

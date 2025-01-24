@@ -68,9 +68,55 @@ namespace fileParser {
     return name;
   }
 
-  double getValue(const std::string &value) {
-    // FIXME: Deal with scientific notation and error handiling
-    return std::stod(value);
+
+  // only supports the format NUMBER SCIENTIFC_NOTATION for now
+  double getValue(std::string &value) {
+    auto prefix = value.back();
+    if (std::isalpha(prefix)) {
+      switch (prefix) {
+      case 'M': {
+        value.pop_back();
+        value += "e6";
+        break;
+      }
+      case 'k': {
+        value.pop_back();
+        value += "e3";
+        break;
+      }
+      case 'm': {
+        value.pop_back();
+        value += "e-3";
+        break;
+      }
+      case 'u': {
+        value.pop_back();
+        value += "e-6";
+        break;
+      }
+      case 'n': {
+        value.pop_back();
+        value += "e-9";
+        break;
+      }
+      case 'p': {
+        value.pop_back();
+        value += "e-12";
+        break;
+      }
+      case 'f': {
+        value.pop_back();
+        value += "e-15";
+        break;
+      }
+      default: {
+        std::cerr << "ERROR: The prefix `" << prefix << "` was not handled" << std::endl;
+      }
+      }
+    }
+    auto number = std::stod(value);
+    //std::cout << number << std::endl;
+    return number;
   }
 
   std::shared_ptr<componentToken> getComponent(const std::string &line) {
