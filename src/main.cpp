@@ -175,7 +175,7 @@ private:
 
 
 int main() {
-  std::vector<std::shared_ptr<fileParser::token>> tokens = fileParser::parseFile("Examples/inductorCapacitor.circuit");
+  std::vector<std::shared_ptr<fileParser::token>> tokens = fileParser::parseFile("../Examples/inductorCapacitor.circuit");
   Circuit circuit = createCircuitFromTokens(tokens);
   circuit.calculate();
   auto initalValues = circuit.initalValues;

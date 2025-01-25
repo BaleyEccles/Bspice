@@ -1,6 +1,7 @@
 *~
 *.m
 src/test
+build
 test
 test.cpp
 main
