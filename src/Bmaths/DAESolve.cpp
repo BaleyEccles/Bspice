@@ -7,12 +7,17 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve(matrix<doub
                                                                      matrix<double> initalGuess,
                                                                      double timeStep, double timeEnd) {
   std::vector<matrix<double>> results;
-  results.push_back(initalGuess);
   std::vector<double> time;
   int steps = ceil(timeEnd/timeStep);
   for (int i = 0; i < steps; i++) {
     double tn = i * timeStep - timeStep;
-    matrix<double> yn = results[results.size() - 1];
+    matrix<double> yn;
+    if (results.size() == 0) {
+      yn = initalGuess;
+    } else {
+      yn = results[results.size() - 1];
+    }
+
     auto nextStep = DAEStepper(A, E, f, yn, timeStep);
     results.push_back(nextStep);
     time.push_back(tn);
@@ -81,9 +86,11 @@ matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f,
     EDE.eliminateCol(col - i);
     i++;
   }
+  
   auto xn1 = add(
       multiply(EDE.invert(), subtract(fDE, multiply(ADE, yn))).scale(timeStep),
       ynDE);
+  //xn1.print();
 
   matrix<double> xn1New = {std::vector<std::vector<double>>(f.rows, std::vector<double>(f.cols, 0.0)), f.cols, f.rows};
   i = 0;
