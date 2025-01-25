@@ -1,0 +1,12 @@
+Components:
+voltage_source{Vcc}{5}
+resistor{R1}{10k}
+capacitor{C1}{10u}
+capacitor{C2}{10u}
+Circuit:
+node{e1}{Vcc}{R1}
+node{e2}{R1}{C1}
+node{e3}{C1}{C2}
+node{GND}{C2}
+Post_Process:
+plot{e2}
