@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(MyProject)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CPP_FILES
     src/main.cpp
@@ -11,6 +12,7 @@ set(CPP_FILES
     src/Bmaths/DAESolve.cpp
     src/Circuit.cpp
     src/fileParser.cpp
+    src/tokenParser.cpp
 )
 
 add_executable(main ${CPP_FILES})
