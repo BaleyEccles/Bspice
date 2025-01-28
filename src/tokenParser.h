@@ -6,7 +6,8 @@
 #include <vector>
 #include <fstream>
 
-Circuit createCircuitFromTokens(std::vector<std::shared_ptr<fileParser::token>> tokens);
+template <class T>
+Circuit<T> createCircuitFromTokens(std::vector<std::shared_ptr<fileParser::token>>& tokens);
 
 
 class postProcess {
@@ -26,3 +27,6 @@ private:
   void addPlot(const std::string &name, std::vector<double> &plotData);
   void createOctavePlotFileFromTokens();
 };
+
+
+#include "tokenParser_impl.h"

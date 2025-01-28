@@ -56,6 +56,7 @@ class Node {
   std::vector<std::shared_ptr<Component>> components;
 };
 
+template<typename T>
 class Circuit {
  public:
   Circuit();
@@ -68,7 +69,7 @@ class Circuit {
 
   // Data 
   std::vector<double> time;
-  matrix<double> A, E, f, initalValues;
+  matrix<T> A, E, f, initalValues;
   matrix<symbol> syms;
 
   // Helper functions
@@ -84,3 +85,4 @@ private:
   int findEquationLocationFromSymbol(std::string s);
 
 };
+#include "Circuit_impl.h"
