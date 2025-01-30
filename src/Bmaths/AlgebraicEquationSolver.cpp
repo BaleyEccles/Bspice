@@ -14,6 +14,7 @@ matrix<double> NewtonsMethod(matrix<double> A, matrix<double> f,
     auto F = subtract(multiply(A, guess), f);
     // d = -J(-1)*F
     auto delta = multiply(J.invert().scale(-1), F);
+
     guess = add(guess, delta);
 
     

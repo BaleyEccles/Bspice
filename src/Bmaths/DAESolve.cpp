@@ -1,5 +1,5 @@
 #include "DAESolve.h"
-#include "AlgebraicEquationSolver.h"
+
 
 // Solve a DAE of the form Ax + Ex' = f
 std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve(matrix<double> A, matrix<double> E,
@@ -24,6 +24,39 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve(matrix<doub
   };
   auto output = std::pair<std::vector<double>, std::vector<matrix<double>>>{time, results};
   return output;
+}
+
+matrix<double> getRowsFromIdx(matrix<double> input, std::vector<int>& idx) {
+  matrix<double> output = {std::vector<std::vector<double>>{}, input.cols, (int)idx.size()};
+  for (auto& row : idx) {
+    output.data.push_back(input.getRow(row).transpose().data[0]);
+  }
+  return output;
+}
+
+std::vector<int> getDEColIdx(matrix<double> E) {
+  std::vector<int> DEColIdx;
+  for (int col = 0; col < E.cols; col++) {
+    bool isZero = false;
+    for (int row = 0; row < E.rows; row++) {
+      if (E.data[row][col] != 0.0) {
+        isZero = true;
+      }
+    }
+    if (isZero) {
+      DEColIdx.push_back(col);
+    }
+  }
+  return DEColIdx;
+}
+
+matrix<double> eliminateColsFromIdx(matrix<double> input, std::vector<int>& idx) {
+  int i = 0;
+  for (auto col : idx) {
+    input.eliminateCol(col - i);
+    i++;
+  }
+  return input;
 }
 
 matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f,
@@ -86,7 +119,8 @@ matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f,
     EDE.eliminateCol(col - i);
     i++;
   }
-  
+  //EDE.print();
+
   auto xn1 = add(
       multiply(EDE.invert(), subtract(fDE, multiply(ADE, yn))).scale(timeStep),
       ynDE);
@@ -142,6 +176,7 @@ matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f,
     NewtonGuess.eliminateRow(row - i);
     i++;
   }
+
   auto AEsols = NewtonsMethod(An, newf, NewtonGuess);
 
   matrix<double> AEsolsNew = {std::vector<std::vector<double>>(
