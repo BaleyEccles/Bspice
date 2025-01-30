@@ -196,7 +196,9 @@ matrix<T> matrix<T>::invert() {
 template<typename T>
 matrix<T> multiply(matrix<T> A, matrix<T> B) {
   if (A.cols != B.rows) {
-    std::cerr << "ERROR: cols of A must be equal to rows of B" << std::endl;
+    std::cerr << "ERROR: For multiply cols of A must be equal to rows of B" << std::endl;
+    A.print("A:");
+    B.print("B:");
     return matrix<T>();
   }
 
@@ -220,7 +222,11 @@ matrix<T> multiply(matrix<T> A, matrix<T> B) {
 
 template<typename T>
 matrix<T> subtract(matrix<T> A, matrix<T> B) {
-  if (A.cols != B.cols || A.rows != B.rows) { std::cerr << "ERROR: Mismatched matrix sizes" << std::endl; }
+  if (A.cols != B.cols || A.rows != B.rows) {
+    std::cerr << "ERROR: Mismatched matrix sizes" << std::endl;
+    A.print("A");
+    B.print("B");
+  }
   std::vector<std::vector<T>> outputData(A.rows, std::vector<T>(A.cols, 0));
   for (int row = 0; row < A.rows; ++row) {
     for (int col = 0; col < A.cols; ++col) {
