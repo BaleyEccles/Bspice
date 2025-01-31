@@ -4,6 +4,11 @@ project(MyProject)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
+endif()
+
+
 set(CPP_FILES
     src/main.cpp
     src/Bmaths/Bmaths.cpp
