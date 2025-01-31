@@ -10,5 +10,6 @@ node{e2}{R1}{R2}{C1}
 node{e3}{R2}{L1}
 node{GND}{L1}{C1}
 Post_Process:
+plot{e1}
 plot{e2}
 plot{e3}

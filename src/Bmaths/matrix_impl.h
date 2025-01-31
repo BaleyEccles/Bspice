@@ -72,8 +72,25 @@ matrix<T> matrix<T>::eliminateCol(int col) {
     cols, rows
   };
 }
+template <typename T>
+matrix<double> matrix<T>::evaluate(double t) {
+  if constexpr (std::is_arithmetic<T>::value) {
+    return &this;
+  } else if constexpr (std::is_same<T, function>::value) {
+    matrix<double> output = {std::vector<std::vector<double>>(rows, std::vector<double>(cols, 0.0)), cols, rows};
+    for (int row = 0; row < output.rows; row++) {
+      for (int col = 0; col < output.cols; col++) {
+        output.data[row][col] = data[row][col].evaluate(t);
+      }
+    }
+    return output;
+  }
+  std::cerr << "ERROR: Unreachable" << std::endl;
+}
 
-template <typename T> matrix<T> matrix<T>::transpose() {
+
+template <typename T>
+matrix<T> matrix<T>::transpose() {
   std::vector<std::vector<T>> outputVec(cols, std::vector<T>(rows));
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < cols; col++) {

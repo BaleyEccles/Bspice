@@ -10,6 +10,9 @@ double function::evaluate(double t) {
       std::cerr << "ERROR: Branch has no opperation defined." << std::endl;
     }
     t = brachOpperation(functions.first->evaluate(t), functions.second->evaluate(t));
+    isBranch = false;
+    t = this->evaluate(t);
+    isBranch = true;
   }
   return t;
 };
@@ -30,7 +33,7 @@ namespace Opperation {
   }
 
   operationPtr sin(double A, double frequency, double theta) {
-    return [A, frequency, theta](double t) { return A*std::sin(frequency*2*std::numbers::pi + theta); };
+    return [A, frequency, theta](double t) { return A*std::sin(frequency*2*std::numbers::pi*t + theta); };
   }
   
   operationPtr cos(double A, double frequency, double theta) {
@@ -40,16 +43,16 @@ namespace Opperation {
   
 };
 namespace branchOpperation {
-  branchPtr add(double branch1, double branch2) {
-    return [](double branch1, double branch2) { return branch1 + branch2; };
+  double add(double branch1, double branch2) {
+    return branch1 + branch2;
   }
   
-  branchPtr multiply(double branch1, double branch2) {
-    return [](double branch1, double branch2) { return branch1 * branch2; };
+  double multiply(double branch1, double branch2) {
+    return branch1 * branch2;
   }
   
-  branchPtr divide(double branch1, double branch2) {
-    return [](double branch1, double branch2) { return branch1 / branch2; };
+  double divide(double branch1, double branch2) {
+    return branch1 / branch2;
   }
   // TODO: add more functions
 };

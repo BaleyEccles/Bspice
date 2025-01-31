@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iomanip>
 
+class function;
 class symbol;
 
 template <typename T>
@@ -20,6 +21,7 @@ class matrix {
   matrix<T> getRow(int row);
   matrix<T> eliminateRow(int row);
   matrix<T> eliminateCol(int col);
+  matrix<double> evaluate(double t);
   matrix<T> transpose();
   double norm(double Ln);
   double max();

@@ -28,9 +28,8 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(Differenti
       xn1 = add(multiply(DEs.E.invert(), subtract(DEs.f, multiply(DEs.A, yn))).scale(timeStep), ynDE);
 
     } else if constexpr (std::is_same<T3, function>::value) {
-      std::cout << "hi mum" << std::endl;
-      auto DAEfEval = DAE.f.evaluate(time);
-      xn1 = add(multiply(DEs.E.invert(), subtract(DAEfEval, multiply(DEs.A, yn))).scale(timeStep), ynDE);  
+      matrix<double> DEsfEval = DEs.f.evaluate(tn);
+      xn1 = add(multiply(DEs.E.invert(), subtract(DEsfEval, multiply(DEs.A, yn))).scale(timeStep), ynDE);  
     }
 
 
@@ -47,7 +46,7 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(Differenti
     if constexpr (std::is_arithmetic<T3>::value) {
       newf = subtract(AEs.f, An1xn1);
     } else if constexpr (std::is_same<T3, function>::value) {
-      auto AEfEval = AEs.f.evaluate(time);
+      auto AEfEval = AEs.f.evaluate(tn);
       newf = subtract(AEfEval, An1xn1);
     }
 
@@ -120,9 +119,9 @@ template<typename T1, typename T2, typename T3>
 DifferentialEquation<T1, T2, T3> getDifferentailEquationsFromDAE(DifferentialAlgebraicEquation<T1, T2, T3> DAE) {
   auto DERowIdx = getDifferentailEquationIdxFromDAE(DAE);
   //auto AERowIdx = getAlgebraicEquationIdxFromDAE(DAE);
-  matrix<double> EDE = {std::vector<std::vector<double>>{}, DAE.E.cols, (int)DERowIdx.size()};
-  matrix<double> ADE = {std::vector<std::vector<double>>{}, DAE.A.cols, (int)DERowIdx.size()};
-  matrix<double> fDE = {std::vector<std::vector<double>>{}, DAE.f.cols, (int)DERowIdx.size()};
+  matrix<T1> ADE = {std::vector<std::vector<T1>>{}, DAE.A.cols, (int)DERowIdx.size()};
+  matrix<T2> EDE = {std::vector<std::vector<T2>>{}, DAE.E.cols, (int)DERowIdx.size()};
+  matrix<T3> fDE = {std::vector<std::vector<T3>>{}, DAE.f.cols, (int)DERowIdx.size()};
   matrix<symbol> symsDE = {std::vector<std::vector<symbol>>{}, DAE.syms.cols, (int)DERowIdx.size()};
 
   for (auto& row : DERowIdx) {
@@ -163,9 +162,9 @@ DifferentialEquation<T1, T2, T3> getDifferentailEquationsFromDAE(DifferentialAlg
 template<typename T1, typename T2, typename T3>
 AlgebraicEquation<T1, T2> getAlgebraicEquationsFromDAE(DifferentialAlgebraicEquation<T1, T3, T2> DAE) {
   auto AERowIdx = getAlgebraicEquationIdxFromDAE(DAE);
-  matrix<double> EAE = {std::vector<std::vector<double>>{}, DAE.E.cols, (int)AERowIdx.size()};
-  matrix<double> AAE = {std::vector<std::vector<double>>{}, DAE.A.cols, (int)AERowIdx.size()};
-  matrix<double> fAE = {std::vector<std::vector<double>>{}, DAE.f.cols, (int)AERowIdx.size()};
+  matrix<T3> EAE = {std::vector<std::vector<T3>>{}, DAE.E.cols, (int)AERowIdx.size()};
+  matrix<T1> AAE = {std::vector<std::vector<T1>>{}, DAE.A.cols, (int)AERowIdx.size()};
+  matrix<T2> fAE = {std::vector<std::vector<T2>>{}, DAE.f.cols, (int)AERowIdx.size()};
   matrix<symbol> symsAE = {std::vector<std::vector<symbol>>{}, DAE.syms.cols, (int)AERowIdx.size()};
 
   for (auto& row : AERowIdx) {

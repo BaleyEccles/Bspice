@@ -7,6 +7,7 @@
 #include <cmath>
 #include <iomanip>
 #include "matrix.h"
+#include "function.h"
 #include "DAESolve.h"
 #include "AlgebraicEquationSolver.h"
 

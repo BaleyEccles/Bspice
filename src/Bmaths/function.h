@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <iostream>
 #include <ostream>
@@ -19,7 +20,13 @@ typedef std::function<double(double, double)> branchPtr;
 class function {
  public:
   inline void addOpperation(operationPtr f) {opperations.push_back(f); };
+  inline void addBranches(branchPtr b, std::shared_ptr<function> f1, std::shared_ptr<function> f2) {
+    isBranch = true;
+    brachOpperation = b;
+    functions = std::pair<std::shared_ptr<function>, std::shared_ptr<function>>(f1, f2);
+  };
   bool isBranch = false;
+
   std::vector<operationPtr> opperations;
   std::pair<std::shared_ptr<function>, std::shared_ptr<function>> functions;
   branchPtr brachOpperation = nullptr;
@@ -41,11 +48,11 @@ namespace Opperation {
   
 };
 namespace branchOpperation {
-  branchPtr add(double branch1, double branch2);
+  double add(double branch1, double branch2);
   
-  branchPtr multiply(double branch1, double branch2);
+  double multiply(double branch1, double branch2);
   
-  branchPtr divide(double branch1, double branch2);
+  double divide(double branch1, double branch2);
   // TODO: add more functions
 };
 
