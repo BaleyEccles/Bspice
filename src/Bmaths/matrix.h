@@ -14,7 +14,7 @@ class matrix {
  public:
   std::vector<std::vector<T>> data;
   int cols, rows;
-  void print(std::string name = "");
+  void print(const std::string name = "") const;
   matrix<T> scale(double scale);
 
   matrix<T> getColumn(int col);
@@ -28,13 +28,17 @@ class matrix {
   
   matrix<T> pseudoInvert();
   matrix<T> invert();
+  
+  matrix<T> operator*(const matrix<T>& other);
+  matrix<T> operator+(const matrix<T>& other);
+  matrix<T> operator-(const matrix<T>& other);
 };
 
-template<typename T>
-matrix<T> multiply(matrix<T> A, matrix<T> B);
+//template<typename T>
+ //matrix<T> multiply(matrix<T> A, matrix<T> B);
 
-template<typename T>
-matrix<T> subtract(matrix<T> A, matrix<T> B);
+//template<typename T>
+ //matrix<T> subtract(matrix<T> A, matrix<T> B);
 
-template <typename T> matrix<T> add(matrix<T> A, matrix<T> B);
+//template <typename T> matrix<T> add(matrix<T> A, matrix<T> B);
 #include "matrix_impl.h"

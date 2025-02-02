@@ -2,7 +2,7 @@
 #include "matrix.h"
 
 template <typename T>
-void matrix<T>::print(std::string name) {
+void matrix<T>::print(const std::string name) const {
   if (name != "") std::cout << name << std::endl;
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
@@ -211,26 +211,26 @@ matrix<T> matrix<T>::invert() {
 
 
 template<typename T>
-matrix<T> multiply(matrix<T> A, matrix<T> B) {
-  if (A.cols != B.rows) {
+matrix<T> matrix<T>::operator*(const matrix<T>& other) {
+  if (this->cols != other.rows) {
     std::cerr << "ERROR: For multiply cols of A must be equal to rows of B" << std::endl;
-    A.print("A:");
-    B.print("B:");
+    this->print("A:");
+    other.print("B:");
     return matrix<T>();
   }
 
-  std::vector<std::vector<T>> outputData(A.rows, std::vector<T>(B.cols, 0));
+  std::vector<std::vector<T>> outputData(this->rows, std::vector<T>(other.cols, 0));
 
-  for (int row = 0; row < A.rows; ++row) {
-    for (int col = 0; col < B.cols; ++col) {
-      for (int k = 0; k < A.cols; ++k) {
-        outputData[row][col] += A.data[row][k] * B.data[k][col];
+  for (int row = 0; row < this->rows; ++row) {
+    for (int col = 0; col < other.cols; ++col) {
+      for (int k = 0; k < this->cols; ++k) {
+        outputData[row][col] += this->data[row][k] * other.data[k][col];
       }
     }
   }
   matrix<T> output = {
     outputData,
-    B.cols, A.rows
+    other.cols, this->rows
   };
 
   return output;
@@ -238,21 +238,21 @@ matrix<T> multiply(matrix<T> A, matrix<T> B) {
 
 
 template<typename T>
-matrix<T> subtract(matrix<T> A, matrix<T> B) {
-  if (A.cols != B.cols || A.rows != B.rows) {
+matrix<T> matrix<T>::operator-(const matrix<T>& other) {
+  if (this->cols != other.cols || this->rows != other.rows) {
     std::cerr << "ERROR: Mismatched matrix sizes" << std::endl;
-    A.print("A");
-    B.print("B");
+    this->print("A");
+    other.print("B");
   }
-  std::vector<std::vector<T>> outputData(A.rows, std::vector<T>(A.cols, 0));
-  for (int row = 0; row < A.rows; ++row) {
-    for (int col = 0; col < A.cols; ++col) {
-      outputData[row][col] = A.data[row][col] - B.data[row][col];
+  std::vector<std::vector<T>> outputData(this->rows, std::vector<T>(this->cols, 0));
+  for (int row = 0; row < this->rows; ++row) {
+    for (int col = 0; col < this->cols; ++col) {
+      outputData[row][col] = this->data[row][col] - other.data[row][col];
     }
   }
   matrix<T> output = {
     outputData,
-    A.cols, A.rows
+    this->cols, this->rows
   };
   return output;
 }
@@ -260,17 +260,17 @@ matrix<T> subtract(matrix<T> A, matrix<T> B) {
 
 
 template<typename T>
-matrix<T> add(matrix<T> A, matrix<T> B) {
-  if (A.cols != B.cols || A.rows != B.rows) { std::cerr << "ERROR: Mismatched matrix sizes" << std::endl; }
-  std::vector<std::vector<T>> outputData(A.rows, std::vector<T>(A.cols, 0));
-  for (int row = 0; row < A.rows; ++row) {
-    for (int col = 0; col < A.cols; ++col) {
-      outputData[row][col] = A.data[row][col] + B.data[row][col];
+matrix<T> matrix<T>::operator+(const matrix<T>& other) {
+  if (this->cols != other.cols || this->rows != other.rows) { std::cerr << "ERROR: Mismatched matrix sizes" << std::endl; }
+  std::vector<std::vector<T>> outputData(this->rows, std::vector<T>(this->cols, 0));
+  for (int row = 0; row < this->rows; ++row) {
+    for (int col = 0; col < this->cols; ++col) {
+      outputData[row][col] = this->data[row][col] + other.data[row][col];
     }
   }
   matrix<T> output = {
     outputData,
-    A.cols, A.rows
+    this->cols, this->rows
   };
   return output;
 }

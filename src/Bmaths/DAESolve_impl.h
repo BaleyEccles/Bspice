@@ -29,7 +29,7 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(Differenti
 
     } else if constexpr (std::is_same<T3, function>::value) {
       matrix<double> DEsfEval = DEs.f.evaluate(tn);
-      xn1 = add(multiply(DEs.E.invert(), subtract(DEsfEval, multiply(DEs.A, yn))).scale(timeStep), ynDE);  
+      xn1 = ((DEs.E.invert() * (DEsfEval - (DEs.A * yn))).scale(timeStep) + ynDE);  
     }
 
 
@@ -41,13 +41,13 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(Differenti
       xn1New.data[row][0] = xn1.data[j][0];
       j++;
     }
-    auto An1xn1 = multiply(AEs.A, xn1New);
+    auto An1xn1 = (AEs.A * xn1New);
     matrix<double> newf;
     if constexpr (std::is_arithmetic<T3>::value) {
       newf = subtract(AEs.f, An1xn1);
     } else if constexpr (std::is_same<T3, function>::value) {
       auto AEfEval = AEs.f.evaluate(tn);
-      newf = subtract(AEfEval, An1xn1);
+      newf = (AEfEval - An1xn1);
     }
 
     auto NewtonGuess = yn;
@@ -67,7 +67,7 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(Differenti
       AEsolsNew.data[row][0] = AEsols.data[j][0];
       j++;
     }
-    auto nextStep = add(AEsolsNew, xn1New);
+    auto nextStep = AEsolsNew + xn1New;
     results.push_back(nextStep);
     time.push_back(tn);
   };

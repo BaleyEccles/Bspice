@@ -46,7 +46,8 @@ public:
   std::vector<operationPtr> operations;
   std::pair<std::shared_ptr<function>, std::shared_ptr<function>> functions;
   branchPtr brachOperation = nullptr;
-  double evaluate(double t);
+  double evaluate(double t) const;
+  double evaluateBranches(double t) const;
   
   function operator+(const function& other) {
     std::shared_ptr<function> f1 = std::make_shared<function>(*this);

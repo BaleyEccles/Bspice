@@ -1,6 +1,6 @@
 #include "function.h"
 
-double function::evaluate(double t) {
+double function::evaluate(double t) const {
 
   if (!isBranch) {
     for (auto& operation : operations) {
@@ -11,12 +11,17 @@ double function::evaluate(double t) {
       std::cerr << "ERROR: Branch has no operation defined." << std::endl;
     }
     t = brachOperation(functions.first->evaluate(t), functions.second->evaluate(t));
-    isBranch = false;
-    t = this->evaluate(t);
-    isBranch = true;
+    t = this->evaluateBranches(t);
   }
   return t;
 };
+
+double function::evaluateBranches(double t) const {
+  for (auto& operation : operations) {
+    t = operation(t);
+  }
+  return t;
+}
 
 function createConstantFunction(double val) {
   function f;

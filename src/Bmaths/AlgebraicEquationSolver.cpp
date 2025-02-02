@@ -11,11 +11,11 @@ matrix<double> NewtonsMethod(matrix<double> A, matrix<double> f,
   for (int i = 0; i < maxIt; i++) {
     // FIXME: Jacobian == A, as we are dealing with first order polynomials
     auto J = A;
-    auto F = subtract(multiply(A, guess), f);
+    auto F = (A * guess) - f;
     // d = -J(-1)*F
-    auto delta = multiply(J.invert().scale(-1), F);
+    auto delta = J.invert().scale(-1) * F;
 
-    guess = add(guess, delta);
+    guess = guess + delta;
 
     
     if (delta.norm(2) < eps) {

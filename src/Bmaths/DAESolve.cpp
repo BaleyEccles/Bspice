@@ -121,9 +121,7 @@ matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f,
   }
   //EDE.print();
 
-  auto xn1 = add(
-      multiply(EDE.invert(), subtract(fDE, multiply(ADE, yn))).scale(timeStep),
-      ynDE);
+  auto xn1 = ((EDE.invert() * (fDE -(ADE * yn))).scale(timeStep) + ynDE);
   //xn1.print();
 
   matrix<double> xn1New = {std::vector<std::vector<double>>(f.rows, std::vector<double>(f.cols, 0.0)), f.cols, f.rows};
@@ -168,8 +166,8 @@ matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f,
     fAE.eliminateRow(row - i);
     i++;
   }
-  auto An1xn1 = multiply(An1, xn1New);
-  auto newf = subtract(fAE, An1xn1);
+  auto An1xn1 = (An1 * xn1New);
+  auto newf = (fAE - An1xn1);
   auto NewtonGuess = yn;
   i = 0;
   for (auto row : DERowIdx) {
@@ -188,7 +186,7 @@ matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f,
     AEsolsNew.data[row][0] = AEsols.data[i][0];
     i++;
   }
-  auto output = add(AEsolsNew, xn1New);
+  auto output = (AEsolsNew + xn1New);
 
   return output;
   

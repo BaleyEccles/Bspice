@@ -5,7 +5,7 @@ matrix<double> EulersMethod(matrix<double> E, matrix<double> A,
   matrix<double> Einv = E.pseudoInvert();
   std::vector<std::vector<double>> d_yn_dtData;
   std::vector<std::vector<double>> yn1Data;
-  auto EinvMulA = multiply(Einv, A);
+  auto EinvMulA = Einv * A;
   for (int row = 0; row < f.rows; row++) {
     auto equEinv = Einv.getRow(row);
     auto equA = A.getRow(row);
