@@ -1,5 +1,5 @@
 Components:
-voltage_source{Vcc}{5}
+voltage_source{Vcc}{AC}{5}{1}{0}
 resistor{R1}{10k}
 capacitor{C1}{10u}
 Circuit:
