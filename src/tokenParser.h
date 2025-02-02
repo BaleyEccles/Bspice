@@ -6,8 +6,8 @@
 #include <vector>
 #include <fstream>
 
-template <class T>
-Circuit<T> createCircuitFromTokens(std::vector<std::shared_ptr<fileParser::token>>& tokens);
+template<typename T1, typename T2, typename T3>
+Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<fileParser::token>>& tokens);
 
 
 class postProcess {

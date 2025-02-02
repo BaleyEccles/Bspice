@@ -7,6 +7,7 @@
 
 enum ComponentType {
   VOLTAGESOURCE = 0,
+  VOLTAGESOURCE_FUNCTION, 
   CURRENTSOURCE,
   RESISTOR,
   CAPACITOR,
@@ -48,6 +49,19 @@ class VoltageSource : public Component {
   double Voltage;
 };
 
+class VoltageSourceFunction : public Component {
+ public:
+  enum functionType {
+    NONE,
+    AC,
+    SQUARE_WAVE
+  };
+  
+  VoltageSourceFunction(const std::string& Name, functionType type, std::vector<double> Values);
+  std::vector<double> Values;
+  functionType fType;
+};
+
 class Node {
  public:
   Node(const std::string& name);
@@ -56,7 +70,7 @@ class Node {
   std::vector<std::shared_ptr<Component>> components;
 };
 
-template<typename T>
+template<typename T1, typename T2, typename T3>
 class Circuit {
  public:
   Circuit();
@@ -69,7 +83,10 @@ class Circuit {
 
   // Data 
   std::vector<double> time;
-  matrix<T> A, E, f, initalValues;
+  matrix<T1> A;
+  matrix<T2> E;
+  matrix<T3> f;
+  matrix<double> initalValues;
   matrix<symbol> syms;
 
   // Helper functions
@@ -83,6 +100,8 @@ private:
   int findNodeLocationFromSymbol(std::string symName);
   void generateComponentConections();
   int findEquationLocationFromSymbol(std::string s);
+
+  function createVoltageFunction(VoltageSourceFunction::functionType& type, std::vector<double>& values);
 
 };
 #include "Circuit_impl.h"

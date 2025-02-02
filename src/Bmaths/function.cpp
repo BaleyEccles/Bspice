@@ -1,6 +1,7 @@
 #include "function.h"
 
 double function::evaluate(double t) {
+
   if (!isBranch) {
     for (auto& opperation : opperations) {
       t = opperation(t);
@@ -16,6 +17,13 @@ double function::evaluate(double t) {
   }
   return t;
 };
+
+function createConstantFunction(double val) {
+  function f;
+  f.addOpperation(Opperation::multiply(0.0));
+  f.addOpperation(Opperation::add(val));
+  return f;
+}
 
 
 

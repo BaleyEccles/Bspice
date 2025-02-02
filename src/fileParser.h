@@ -38,12 +38,18 @@ namespace fileParser {
   
   class componentToken : public token {
   public:
+
+    
     componentToken(ComponentType componentType);
     std::string name;
-    double value;
+    std::vector<double> values;
     ComponentType componentType;
+    VoltageSourceFunction::functionType fType; // For functions ie. AC, square wave etc
     inline void addName(std::string componentName) {name = componentName;};
-    inline void addValue(double componentValue) {value = componentValue;};
+    inline void setFunctionType(VoltageSourceFunction::functionType type) {fType = type;};
+    inline void addValue(double componentValue) {values.push_back(componentValue);};
+    inline void addValues(std::vector<double> componentValues) {for (auto& val : componentValues) {values.push_back(val); }};
+
   };
   
   class nodeToken : public token {

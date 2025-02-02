@@ -13,13 +13,13 @@
 
 
 int main() {
-  std::vector<std::shared_ptr<fileParser::token>> tokens = fileParser::parseFile("../Examples/inductorCapacitor.circuit");
-  Circuit<double> circuit = createCircuitFromTokens<double>(tokens);
+  std::vector<std::shared_ptr<fileParser::token>> tokens = fileParser::parseFile("../Examples/capacitorAC.circuit");
+  Circuit<double, double, function> circuit = createCircuitFromTokens<double, double, function>(tokens);
   circuit.calculate();
   auto initalValues = circuit.initalValues;
   auto A = circuit.A;
   auto E = circuit.E;
-  //auto f = circuit.f;
+  auto f = circuit.f;
   auto s = circuit.syms;
   function f0;
   f0.addOpperation(Opperation::multiply(0.0));
@@ -30,16 +30,16 @@ int main() {
   function freqIncrease;
   freqIncrease.addBranches(branchOpperation::multiply, f1, f2);
   freqIncrease.addOpperation(Opperation::sin(5.0, 1.0, 0.0));
-  matrix<function> f = {
-    std::vector<std::vector<function>>{
-      {f0},
-      {f0},
-      {f0},
-      {f0},
-      {freqIncrease},
-      {f0}},
-    1, 6
-  };
+  //matrix<function> f = {
+  //  std::vector<std::vector<function>>{
+  //    {f0},
+  //    {f0},
+  //    {f0},
+  //    {f0},
+  //    {freqIncrease},
+  //    {f0}},
+  //  1, 6
+  //};
   double timeStep = 0.0001;
   double endTime = 10.0;
 

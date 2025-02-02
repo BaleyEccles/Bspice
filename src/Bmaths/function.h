@@ -7,6 +7,15 @@
 #include <cmath>
 #include <functional>
 
+namespace branchOpperation {
+  double add(double branch1, double branch2);
+  
+  double multiply(double branch1, double branch2);
+  
+  double divide(double branch1, double branch2);
+  // TODO: add more functions
+};
+
 // for now this is intended to be used as a function that takes in one double and returns a double
 // for example Vcc = A*sin(w*t + theta)
 typedef std::function<double(double)> operationPtr;
@@ -18,7 +27,7 @@ typedef std::function<double(double, double)> branchPtr;
 // y = x + sin(x)
 
 class function {
- public:
+public:
   inline void addOpperation(operationPtr f) {opperations.push_back(f); };
   inline void addBranches(branchPtr b, std::shared_ptr<function> f1, std::shared_ptr<function> f2) {
     isBranch = true;
@@ -31,7 +40,18 @@ class function {
   std::pair<std::shared_ptr<function>, std::shared_ptr<function>> functions;
   branchPtr brachOpperation = nullptr;
   double evaluate(double t);
+  
+  function operator+(const function& other) {
+    std::shared_ptr<function> f1(this, [](function*) { /* no-op deleter */ });
+    std::shared_ptr<function> f2(const_cast<function*>(&other), [](function*) { /* no-op deleter */ });
+    function f;
+    f.addBranches(branchOpperation::add, f1, f2);
+    return other;
+  }
+
 };
+
+function createConstantFunction(double val);
 
 
 namespace Opperation {
@@ -46,14 +66,6 @@ namespace Opperation {
   operationPtr cos(double A = 1.0, double frequency = 1/(2*std::numbers::pi), double theta = 0);
   // TODO: add more functions
   
-};
-namespace branchOpperation {
-  double add(double branch1, double branch2);
-  
-  double multiply(double branch1, double branch2);
-  
-  double divide(double branch1, double branch2);
-  // TODO: add more functions
 };
 
 
