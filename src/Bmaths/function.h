@@ -7,7 +7,7 @@
 #include <cmath>
 #include <functional>
 
-namespace branchOpperation {
+namespace branchOperation {
   double add(double branch1, double branch2);
   
   double multiply(double branch1, double branch2);
@@ -23,30 +23,37 @@ typedef std::function<double(double, double)> branchPtr;
 
 // The way we are going to reprsent a function is like a tree.
 // To deal with having more than one instance of a varible we must have a recursive definition
-// Using a simple list of opperations would make it 'imposible' to rempresent functions like:
+// Using a simple list of operations would make it 'imposible' to rempresent functions like:
 // y = x + sin(x)
 
 class function {
 public:
-  inline void addOpperation(operationPtr f) {opperations.push_back(f); };
+  inline void addOperation(operationPtr f) {operations.push_back(f); };
   inline void addBranches(branchPtr b, std::shared_ptr<function> f1, std::shared_ptr<function> f2) {
+    if (f1 == nullptr) {
+      std::cerr << "ERROR: Unable to add branches, f1 is nullptr." << std::endl;
+    }
+    if (f2 == nullptr) {
+      std::cerr << "ERROR: Unable to add branches, f2 is nullptr." << std::endl;
+    }
+    std::cout << "added branch" << std::endl;
     isBranch = true;
-    brachOpperation = b;
-    functions = std::pair<std::shared_ptr<function>, std::shared_ptr<function>>(f1, f2);
+    brachOperation = b;
+    functions = std::make_pair(f1, f2);
   };
   bool isBranch = false;
 
-  std::vector<operationPtr> opperations;
+  std::vector<operationPtr> operations;
   std::pair<std::shared_ptr<function>, std::shared_ptr<function>> functions;
-  branchPtr brachOpperation = nullptr;
+  branchPtr brachOperation = nullptr;
   double evaluate(double t);
   
   function operator+(const function& other) {
-    std::shared_ptr<function> f1(this, [](function*) { /* no-op deleter */ });
-    std::shared_ptr<function> f2(const_cast<function*>(&other), [](function*) { /* no-op deleter */ });
+    std::shared_ptr<function> f1 = std::make_shared<function>(*this);
+    std::shared_ptr<function> f2 = std::make_shared<function>(other);
     function f;
-    f.addBranches(branchOpperation::add, f1, f2);
-    return other;
+    f.addBranches(branchOperation::add, f1, f2);
+    return f;
   }
 
 };
@@ -54,7 +61,7 @@ public:
 function createConstantFunction(double val);
 
 
-namespace Opperation {
+namespace Operation {
   operationPtr add(double arg);
 
   operationPtr multiply(double arg);

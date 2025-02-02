@@ -3,14 +3,14 @@
 double function::evaluate(double t) {
 
   if (!isBranch) {
-    for (auto& opperation : opperations) {
-      t = opperation(t);
+    for (auto& operation : operations) {
+      t = operation(t);
     }
   } else {
-    if (brachOpperation == nullptr) {
-      std::cerr << "ERROR: Branch has no opperation defined." << std::endl;
+    if (brachOperation == nullptr) {
+      std::cerr << "ERROR: Branch has no operation defined." << std::endl;
     }
-    t = brachOpperation(functions.first->evaluate(t), functions.second->evaluate(t));
+    t = brachOperation(functions.first->evaluate(t), functions.second->evaluate(t));
     isBranch = false;
     t = this->evaluate(t);
     isBranch = true;
@@ -20,14 +20,14 @@ double function::evaluate(double t) {
 
 function createConstantFunction(double val) {
   function f;
-  f.addOpperation(Opperation::multiply(0.0));
-  f.addOpperation(Opperation::add(val));
+  f.addOperation(Operation::multiply(0.0));
+  f.addOperation(Operation::add(val));
   return f;
 }
 
 
 
-namespace Opperation {
+namespace Operation {
   operationPtr add(double arg) {
     return [arg](double t) { return arg + t; };
   }
@@ -50,7 +50,7 @@ namespace Opperation {
   // TODO: add more functions
   
 };
-namespace branchOpperation {
+namespace branchOperation {
   double add(double branch1, double branch2) {
     return branch1 + branch2;
   }

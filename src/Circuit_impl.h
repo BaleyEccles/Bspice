@@ -148,15 +148,15 @@ function Circuit<T1, T2, T3>::createVoltageFunction(VoltageSource::functionType&
   function f;
   switch (type) {
   case VoltageSource::functionType::NONE: {
-    f.addOpperation(Opperation::multiply(0.0));
-    f.addOpperation(Opperation::add(values[0]));
+    f.addOperation(Operation::multiply(0.0));
+    f.addOperation(Operation::add(values[0]));
     break;
   }
   case VoltageSource::functionType::AC: {
     if (values.size() != 3) {
       std::cerr << "ERROR: AC must have three arguments: magnitude, frequency and phase shift." << std::endl;
     }
-    f.addOpperation(Opperation::sin(values[0], values[1], values[2]));
+    f.addOperation(Operation::sin(values[0], values[1], values[2]));
     break;
   }
   default: {
@@ -264,7 +264,7 @@ void Circuit<T1, T2, T3>::preAllocateMatrixData() {
     fdata = fArithmetic;
   } else if constexpr (std::is_same<T3, function>::value) {
     function f0;
-    f0.addOpperation(Opperation::multiply(0.0));
+    f0.addOperation(Operation::multiply(0.0));
     std::vector<std::vector<T3>> fFunction(f.rows,
                                        std::vector<T3>(f.cols, f0));
     fdata = fFunction;
