@@ -7,7 +7,6 @@
 
 enum ComponentType {
   VOLTAGESOURCE = 0,
-  VOLTAGESOURCE_FUNCTION, 
   CURRENTSOURCE,
   RESISTOR,
   CAPACITOR,
@@ -43,13 +42,9 @@ class Inductor : public Component {
   double Inductance;
 };
 
-class VoltageSource : public Component {
- public:
-  VoltageSource(const std::string& Name, double Value);
-  double Voltage;
-};
 
-class VoltageSourceFunction : public Component {
+
+class VoltageSource : public Component {
  public:
   enum functionType {
     NONE,
@@ -57,7 +52,7 @@ class VoltageSourceFunction : public Component {
     SQUARE_WAVE
   };
   
-  VoltageSourceFunction(const std::string& Name, functionType type, std::vector<double> Values);
+  VoltageSource(const std::string& Name, functionType type, std::vector<double> Values);
   std::vector<double> Values;
   functionType fType;
 };
@@ -101,7 +96,7 @@ private:
   void generateComponentConections();
   int findEquationLocationFromSymbol(std::string s);
 
-  function createVoltageFunction(VoltageSourceFunction::functionType& type, std::vector<double>& values);
+  function createVoltageFunction(VoltageSource::functionType& type, std::vector<double>& values);
 
 };
 #include "Circuit_impl.h"

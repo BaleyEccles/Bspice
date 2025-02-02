@@ -135,11 +135,7 @@ namespace fileParser {
     std::string voltageSource = "voltage_source";
     if (line.substr(0, voltageSource.size()) == voltageSource) {
       auto inputs = getInputs(line);
-      if (inputs[1] == "AC" || inputs[1] == "SQUARE_WAVE") {// there needs to be a better way
-        return std::make_shared<componentToken>(VOLTAGESOURCE_FUNCTION);
-      } else {
-        return std::make_shared<componentToken>(VOLTAGESOURCE);
-      }
+      return std::make_shared<componentToken>(VOLTAGESOURCE);
     }
     std::string currentSource = "current_source";
     if (line.substr(0, currentSource.size()) == currentSource) {
@@ -153,25 +149,25 @@ namespace fileParser {
     std::shared_ptr<componentToken> component = getComponent(line);
 
     std::vector<std::string> inputs = getInputs(line);
-    if (component->componentType != VOLTAGESOURCE_FUNCTION && inputs.size() != 2) {
+    if (component->componentType != VOLTAGESOURCE && inputs.size() != 2) {
       // FIXME: When we add opams, bjts, etc this must change
       std::cerr << "ERROR: Components must have two inputs." << std::endl;
       std::cerr << "\tEX: COMPONENT{NAME}{VALUE}" << std::endl;
     } // TODO: Error handling for AC/sqaure wave signals
-    if (component->componentType == VOLTAGESOURCE_FUNCTION && inputs[1] == "AC") {
+    if (component->componentType == VOLTAGESOURCE && inputs[1] == "AC") {
       std::string name = getName(inputs[0]);
       std::cout << "NAME: " <<  name << std::endl;
       double amplitude = getValue(inputs[2]);
       double frequency = getValue(inputs[3]);
       double shift = getValue(inputs[4]);
-      component->setFunctionType(VoltageSourceFunction::AC);
+      component->setFunctionType(VoltageSource::AC);
       component->addName(name);
       component->addValues({amplitude, frequency, shift});
       tokens.push_back(component);
     } else {
       std::string name = getName(inputs[0]);
       double value = getValue(inputs[1]);
-      component->setFunctionType(VoltageSourceFunction::NONE);
+      component->setFunctionType(VoltageSource::NONE);
       component->addName(name);
       component->addValue(value);
       tokens.push_back(component);

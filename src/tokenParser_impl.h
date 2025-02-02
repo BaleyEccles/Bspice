@@ -9,23 +9,8 @@ Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<filePars
       for (auto& component : nodeToken->components) {
         auto componentToken = dynamic_cast<fileParser::componentToken *>(component.get());
         switch(componentToken->componentType){
-        case ComponentType::VOLTAGESOURCE_FUNCTION: 
         case ComponentType::VOLTAGESOURCE: {
-          std::shared_ptr<Component> c = nullptr;
-          if (componentToken->fType == VoltageSourceFunction::NONE) {
-            c = std::make_shared<VoltageSource>(componentToken->name, componentToken->values[0]);
-          } else {
-            switch(componentToken->type) {
-            case VoltageSourceFunction::AC: {
-              c = std::make_shared<VoltageSourceFunction>(componentToken->name, VoltageSourceFunction::AC, componentToken->values);
-              break;
-            }
-            default: {
-              std::cerr << "ERROR: Voltage source function not handled yet." << std::endl;
-              break;
-            }
-            }
-          }
+          std::shared_ptr<Component> c = std::make_shared<VoltageSource>(componentToken->name, componentToken->fType, componentToken->values);;
           node->addComponent(c);
           break;
         }

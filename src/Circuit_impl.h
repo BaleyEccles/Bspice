@@ -117,29 +117,12 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           int nodeLocation1 = findNodeLocationFromNode(c->Connections[0]);
           int nodeLocationCurrent = findNodeLocationFromSymbol("i_" + c->ComponentName);
           auto voltageSource = dynamic_cast<VoltageSource *>(c.get());
-          initalValues.data[nodeLocation1][0] += voltageSource->Voltage;
           // FIXME?: This might break on diff circuits
           A.data[equationNumber][nodeLocationCurrent] = 1;
           A.data[nodeLocationCurrent][equationNumber] = 1;
           if constexpr (std::is_arithmetic<T3>::value) {
-            f.data[nodeLocationCurrent][0] += voltageSource->Voltage;
+            f.data[nodeLocationCurrent][0] += voltageSource->Values[0];
           }  else if constexpr (std::is_same<T3, function>::value) {
-            f.data[nodeLocationCurrent][0] = f.data[nodeLocationCurrent][0] + createConstantFunction(voltageSource->Voltage);
-          }
-
-          break;
-        }
-        case ComponentType::VOLTAGESOURCE_FUNCTION: {
-          int nodeLocation1 = findNodeLocationFromNode(c->Connections[0]);
-          int nodeLocationCurrent = findNodeLocationFromSymbol("i_" + c->ComponentName);
-          auto voltageSource = dynamic_cast<VoltageSourceFunction *>(c.get());
-          // FIXME?: This might break on diff circuits
-          A.data[equationNumber][nodeLocationCurrent] = 1;
-          A.data[nodeLocationCurrent][equationNumber] = 1;
-          if constexpr (std::is_arithmetic<T3>::value) {
-            std::cerr << "ERROR: How? This should be unreachable." << std::endl;
-          }  else if constexpr (std::is_same<T3, function>::value) {
-            // NEED TO MAKE A WAY FOR CREATING THE FUNCTIONS
             f.data[nodeLocationCurrent][0] = f.data[nodeLocationCurrent][0] + createVoltageFunction(voltageSource->fType, voltageSource->Values);
           }
 
@@ -161,14 +144,15 @@ void Circuit<T1, T2, T3>::generateMatrices() {
 }
 
 template<typename T1, typename T2, typename T3>
-function Circuit<T1, T2, T3>::createVoltageFunction(VoltageSourceFunction::functionType& type, std::vector<double>& values) {
+function Circuit<T1, T2, T3>::createVoltageFunction(VoltageSource::functionType& type, std::vector<double>& values) {
   function f;
   switch (type) {
-  case VoltageSourceFunction::functionType::NONE: {
-    std::cerr << "ERROR: Unreachable" << std::endl;
+  case VoltageSource::functionType::NONE: {
+    f.addOpperation(Opperation::multiply(0.0));
+    f.addOpperation(Opperation::add(values[0]));
     break;
   }
-  case VoltageSourceFunction::functionType::AC: {
+  case VoltageSource::functionType::AC: {
     if (values.size() != 3) {
       std::cerr << "ERROR: AC must have three arguments: magnitude, frequency and phase shift." << std::endl;
     }
@@ -242,7 +226,7 @@ void Circuit<T1, T2, T3>::generateSymbols() {
   syms.cols = 1;
   for (auto node : nodes) {
     for (auto c : node->components) {
-      if (c->Type == ComponentType::VOLTAGESOURCE || c->Type == ComponentType::VOLTAGESOURCE_FUNCTION || c->Type == ComponentType::INDUCTOR) {
+      if (c->Type == ComponentType::VOLTAGESOURCE || c->Type == ComponentType::INDUCTOR) {
         symbol componetCurrent = symbol("i_" + c->ComponentName);
         auto symsTransposed = syms.transpose();
         auto it = std::find(symsTransposed.data[0].begin(),

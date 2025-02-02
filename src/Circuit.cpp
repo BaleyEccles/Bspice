@@ -12,11 +12,8 @@ Capacitor::Capacitor(const std::string &Name, double Value)
 Inductor::Inductor(const std::string &Name, double Value)
     : Component(Name, ComponentType::INDUCTOR), Inductance(Value) {}
 
-VoltageSource::VoltageSource(const std::string &Name, double Value)
-    : Component(Name, ComponentType::VOLTAGESOURCE), Voltage(Value) {}
-
-VoltageSourceFunction::VoltageSourceFunction(const std::string& Name, functionType type, std::vector<double> Values)
-  : Component(Name, ComponentType::VOLTAGESOURCE_FUNCTION), fType(type), Values(Values) {}
+VoltageSource::VoltageSource(const std::string& Name, functionType type, std::vector<double> Values)
+  : Component(Name, ComponentType::VOLTAGESOURCE), fType(type), Values(Values) {}
 
 Node::Node(const std::string &name) : nodeName(name) {}
 

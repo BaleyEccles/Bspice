@@ -11,7 +11,7 @@ void matrix<T>::print(std::string name) {
       } else if constexpr (std::is_same<T, symbol>::value) {
         std::cout << data[i][j].name << " ";
       } else if constexpr (std::is_same<T, function>::value) {
-        std::cout << "at 0: " << data[i][j].evaluate(0.0) << " ";
+        std::cout << "function evaluated at 0: " << data[i][j].evaluate(0.0) << " ";
       }
     }
     std::cout << "\n";
