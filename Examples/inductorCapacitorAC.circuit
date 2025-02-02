@@ -1,15 +1,12 @@
-Components:
 voltage_source{Vcc}{AC}{5}{10}{0}
 resistor{R1}{500}
 resistor{R2}{10}
 capacitor{C1}{1m}
 inductor{L1}{1}
-Circuit:
 node{e1}{Vcc}{R1}
 node{e2}{R1}{R2}{C1}
 node{e3}{R2}{L1}
 node{GND}{L1}{C1}
-Post_Process:
 plot{e1}
 plot{e2}
 plot{e3}

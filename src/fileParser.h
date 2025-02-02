@@ -12,8 +12,7 @@ namespace fileParser {
   class token {
   public:
     enum tokenType {
-      KEY_WORD = 0,
-      COMPONENT,
+      COMPONENT = 0,
       NODE,
       PLOT
     };
@@ -24,17 +23,7 @@ namespace fileParser {
     tokenType type;
   };
 
-  class keyWordToken : public token {
-  public:
-    enum KeyWordType {
-      COMPONENTS,
-      CIRCUIT,
-      POST_PROCESS
-    };
-    keyWordToken(KeyWordType keyWordType);
-    KeyWordType keyWordType;
 
-  };
   
   class componentToken : public token {
   public:
@@ -79,16 +68,13 @@ namespace fileParser {
   void addComponent(std::vector<std::shared_ptr<token>>& tokens, const std::string &line);
   void addNode(std::vector<std::shared_ptr<token>>& tokens, const std::string &line);
   void addPlot(std::vector<std::shared_ptr<token>>& tokens, const std::string &line);
-  void addKeyWord(std::vector<std::shared_ptr<token>>& tokens, const std::string &line);
     
   std::shared_ptr<plotToken> getPlot(const std::string &line);
   std::shared_ptr<nodeToken> getNode(const std::string &line);
   std::shared_ptr<componentToken> getComponent(const std::string &line);
-  std::shared_ptr<keyWordToken> getKeyWord(const std::string &line);
   
 
   bool tokenIsComponent(std::string token);
-  bool tokenIsKeyWord(std::string token);
   bool tokenIsNode(std::string token);
   bool tokenIsPlot(std::string token);
   

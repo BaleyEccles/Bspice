@@ -18,14 +18,9 @@ namespace fileParser {
     return tokens;
   }
 
-
   token::token(tokenType type)
     :type(type) {};
   
-  keyWordToken::keyWordToken(KeyWordType keyWordType)
-      : token(token::KEY_WORD), keyWordType(keyWordType) {};
-
-
   componentToken::componentToken(ComponentType componentType)
     : token(token::COMPONENT), componentType(componentType) {};
 
@@ -241,35 +236,10 @@ namespace fileParser {
     tokens.push_back(plot);
   }
 
-  std::shared_ptr<keyWordToken> getKeyWord(const std::string &line) {
-    std::string components = "Components:";
-    if (line.substr(0, components.size()) == components) {
-      return std::make_shared<keyWordToken>(keyWordToken::COMPONENTS);
-    }
-    std::string circuit = "Circuit:";
-    if (line.substr(0, circuit.size()) == circuit) {
-      return std::make_shared<keyWordToken>(keyWordToken::CIRCUIT);
-    }
-    std::string postProcess = "Post_Process:";
-    if (line.substr(0, postProcess.size()) == postProcess) {
-      return std::make_shared<keyWordToken>(keyWordToken::POST_PROCESS);
-    }
-    return 0;
-  }
-
-  void addKeyWord(std::vector<std::shared_ptr<token>>& tokens, const std::string &line) {
-    std::shared_ptr<keyWordToken> keyWord = getKeyWord(line);
-    tokens.push_back(keyWord);
-  }
 
   bool tokenIsComponent(std::string token) {
     // FIXME: make this more elegent 
     return token == "resistor" || token == "capacitor" || token == "voltage_source" || token == "inductor";
-  }
-
-  bool tokenIsKeyWord(std::string token) {
-    // FIXME: make this more elegent 
-    return token == "Components:" || token == "Circuit:" || token == "Post_Process:";
   }
 
   bool tokenIsNode(std::string token) {
@@ -287,10 +257,7 @@ namespace fileParser {
     std::string currentToken;
     for (char c : line) {
       currentToken = currentToken + c;
-
-      if (tokenIsKeyWord(currentToken)) {
-        addKeyWord(tokens, line);
-      } else if (tokenIsComponent(currentToken)) {
+      if (tokenIsComponent(currentToken)) {
         addComponent(tokens, line);
       } else if (tokenIsNode(currentToken)) {
         addNode(tokens, line);
