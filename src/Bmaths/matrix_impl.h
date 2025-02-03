@@ -1,6 +1,5 @@
 #pragma once
 #include "matrix.h"
-
 template <typename T>
 void matrix<T>::print(const std::string name) const {
   if (name != "") std::cout << name << std::endl;
@@ -12,6 +11,8 @@ void matrix<T>::print(const std::string name) const {
         std::cout << data[i][j].name << " ";
       } else if constexpr (std::is_same<T, function>::value) {
         std::cout << "function evaluated at 0: " << data[i][j].evaluate(0.0) << " ";
+      } else if constexpr (std::is_same<T, complexNumber<double>>::value) {
+        data[i][j].print();
       }
     }
     std::cout << "\n";
@@ -211,20 +212,20 @@ matrix<T> matrix<T>::invert() {
 
 
 template<typename T>
-matrix<T> matrix<T>::operator*(const matrix<T>& other) {
+template<typename U>
+matrix<T> matrix<T>::operator*(const matrix<U>& other) {
   if (this->cols != other.rows) {
     std::cerr << "ERROR: For multiply cols of A must be equal to rows of B" << std::endl;
     this->print("A:");
     other.print("B:");
-    return matrix<T>();
   }
+  std::vector<std::vector<T>> outputData(this->rows, std::vector<T>(other.cols));
 
-  std::vector<std::vector<T>> outputData(this->rows, std::vector<T>(other.cols, 0));
 
   for (int row = 0; row < this->rows; ++row) {
     for (int col = 0; col < other.cols; ++col) {
       for (int k = 0; k < this->cols; ++k) {
-        outputData[row][col] += this->data[row][k] * other.data[k][col];
+        outputData[row][col] = outputData[row][col] + (this->data[row][k] * other.data[k][col]);
       }
     }
   }

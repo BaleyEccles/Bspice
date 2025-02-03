@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
+#include "complexNumbers.h"
 
 class function;
 class symbol;
@@ -28,8 +29,8 @@ class matrix {
   
   matrix<T> pseudoInvert();
   matrix<T> invert();
-  
-  matrix<T> operator*(const matrix<T>& other);
+  template<typename U>
+  matrix<T> operator*(const matrix<U>& other);
   matrix<T> operator+(const matrix<T>& other);
   matrix<T> operator-(const matrix<T>& other);
 };

@@ -10,6 +10,7 @@
 #include "function.h"
 #include "DAESolve.h"
 #include "AlgebraicEquationSolver.h"
+#include "complexNumbers.h"
 
 struct symbol {
   std::string name;

@@ -248,7 +248,7 @@ void Circuit<T1, T2, T3>::preAllocateMatrixData() {
   A.rows = matrixSize;
   A.cols = matrixSize;
   std::vector<std::vector<T1>> Adata(A.rows,
-                                         std::vector<T1>(A.cols, 0.0));
+                                     std::vector<T1>(A.cols, 0.0));
   A.data = Adata;
   E.rows = matrixSize;
   E.cols = matrixSize;
