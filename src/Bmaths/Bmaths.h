@@ -11,6 +11,7 @@
 #include "DAESolve.h"
 #include "AlgebraicEquationSolver.h"
 #include "complexNumbers.h"
+#include "FourierTransform.h"
 
 struct symbol {
   std::string name;

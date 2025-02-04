@@ -13,6 +13,10 @@ public:
     return sqrt(pow(a,2) + pow(b,2));
   }
 
+  inline double phase() {
+    return atan(b/a);
+  }
+
   inline void print() const {
     std::cout << a << " + "<< b << "j" << std::endl;
   }

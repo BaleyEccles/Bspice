@@ -10,3 +10,6 @@ node{GND}{L1}{C1}
 plot{e1}
 plot{e2}
 plot{e3}
+fourier_transform{f_e2}{e2}
+fourier_transform{f_e3}{e3}
+

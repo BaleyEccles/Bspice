@@ -30,6 +30,9 @@ namespace fileParser {
   plotToken::plotToken()
     : token(token::PLOT){};
 
+  fourierToken::fourierToken()
+    : token(token::FOURIER){};
+
 
   std::vector<std::string> getInputs(const std::string &line) {
     //std::cout << line << std::endl;
@@ -219,6 +222,23 @@ namespace fileParser {
     tokens.push_back(node);
   }
 
+  std::shared_ptr<fourierToken> getFourier(const std::string &line) {
+    return std::make_shared<fourierToken>();
+  }
+
+  void addFourier(std::vector<std::shared_ptr<token>>& tokens, const std::string &line) {
+    std::shared_ptr<fourierToken> fourier = getFourier(line);
+    std::vector<std::string> inputs = getInputs(line);
+    if (inputs.size() != 2) {
+      std::cerr << "ERROR: fourier transforms must have 2 input." << std::endl;
+      std::cerr << "\tEX: fourier_transform{VARIBLE_NAME}{TRANSFORM_VARIBLE}" << std::endl;
+    }
+    std::string varibleName = getName(inputs[0]);
+    // FIXME: Verify that toTransform is a valid voltage/current/node etc
+    std::string toTransform = getName(inputs[1]);
+    fourier->addFourier(varibleName, toTransform);
+    tokens.push_back(fourier);
+  }
 
   std::shared_ptr<plotToken> getPlot(const std::string &line) {
     return std::make_shared<plotToken>();
@@ -251,6 +271,10 @@ namespace fileParser {
     // FIXME: make this more elegent 
     return token == "plot";
   }
+  bool tokenIsFourier(std::string token) {
+    // FIXME: make this more elegent 
+    return token == "fourier_transform";
+  }  
 
   std::vector<std::shared_ptr<token>> tokenize(const std::string& line, std::vector<std::shared_ptr<token>> tokens) {
     std::istringstream stream(line);
@@ -263,6 +287,8 @@ namespace fileParser {
         addNode(tokens, line);
       } else if (tokenIsPlot(currentToken)) {
         addPlot(tokens, line);
+      } else if (tokenIsFourier(currentToken)) {
+        addFourier(tokens, line);
       }
     }
 

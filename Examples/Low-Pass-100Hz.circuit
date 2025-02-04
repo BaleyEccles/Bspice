@@ -1,4 +1,4 @@
-voltage_source{Vcc}{5}
+voltage_source{Vcc}{AC}{5}{10}{0}
 resistor{R1}{16k}
 capacitor{C1}{100n}
 node{e1}{Vcc}{R1}
@@ -6,3 +6,5 @@ node{e2}{R1}{C1}
 node{GND}{C1}
 plot{e1}
 plot{e2}
+fourier_transform{f_e1}{e1}
+fourier_transform{f_e2}{e2}

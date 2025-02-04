@@ -14,7 +14,8 @@ namespace fileParser {
     enum tokenType {
       COMPONENT = 0,
       NODE,
-      PLOT
+      PLOT,
+      FOURIER
     };
   
     token(tokenType type);
@@ -55,7 +56,19 @@ namespace fileParser {
     plotToken();
     std::string name;
     inline void addPlot(std::string plotName) {name = plotName;};
+
   };
+  class fourierToken : public token {
+  public:
+    fourierToken();
+    std::string varibleName, transformVarible;
+    inline void addFourier(std::string name, std::string transform) {
+      varibleName = name;
+      transformVarible = transform;
+    };
+  };
+
+  
   std::vector<std::shared_ptr<token>> tokenize(const std::string& line, std::vector<std::shared_ptr<token>> tokens);
 
   

@@ -1,5 +1,6 @@
 #pragma once
 #include "Circuit.h"
+#include "Bmaths/FourierTransform.h"
 #include "fileParser.h"
 #include <memory>
 #include <string>
@@ -25,7 +26,10 @@ private:
   
   void addOctaveVarible(const std::string &name, std::vector<double> &plotData);
   void addPlot(const std::string &name, std::vector<double> &plotData);
+  void addFourierPlot(const std::string &name, std::vector<double> &frequencyData, std::vector<double> &magnitudeData);
   void createOctavePlotFileFromTokens();
+
+
 };
 
 
