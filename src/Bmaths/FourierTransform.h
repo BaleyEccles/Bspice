@@ -32,7 +32,7 @@ public:
       for (int n = 0; n < N; n++) {
         auto data = inputData.data[0][n];
         double angle = -2*std::numbers::pi*k*n/N;
-        transformData.data[0][k] = transformData.data[0][k] + (data*makeComplexNumberFromPolar<double>(1, angle));
+        transformData.data[0][k] += (data*makeComplexNumberFromPolar<double>(1, angle));
       }
       frequency.data[0].push_back(k*fs);
 
