@@ -4,6 +4,9 @@ project(MyProject)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg")
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 endif()
@@ -26,11 +29,6 @@ add_executable(main ${CPP_FILES})
 add_custom_target(run
     COMMAND main
     DEPENDS main
-)
-
-add_custom_target(plot
-    COMMAND octave --no-gui plotData.m
-    DEPENDS run
 )
 
 
