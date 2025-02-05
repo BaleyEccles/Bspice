@@ -16,14 +16,16 @@ double function::evaluate(double t) const {
 
 function createConstantFunction(double val) {
   function f;
-  f.addOperation(Operation::multiply(0.0));
-  f.addOperation(Operation::add(val));
+  f.addOperation(Operation::constant(val));
   return f;
 }
 
 
 
 namespace Operation {
+  operationPtr constant(double arg) {
+    return [arg](double t) { return arg; };
+  }
   operationPtr add(double arg) {
     return [arg](double t) { return arg + t; };
   }

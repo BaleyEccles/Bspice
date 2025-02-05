@@ -63,6 +63,8 @@ function createConstantFunction(double val);
 
 
 namespace Operation {
+  operationPtr constant(double arg);
+  
   operationPtr add(double arg);
 
   operationPtr multiply(double arg);
