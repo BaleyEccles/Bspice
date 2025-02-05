@@ -2,26 +2,17 @@
 
 double function::evaluate(double t) const {
 
-  if (!isBranch) {
-    for (auto& operation : operations) {
-      t = operation(t);
-    }
-  } else {
-    if (brachOperation == nullptr) {
-      std::cerr << "ERROR: Branch has no operation defined." << std::endl;
-    }
-    t = brachOperation(functions.first->evaluate(t), functions.second->evaluate(t));
-    t = this->evaluateBranches(t);
+  if (brachOperation == nullptr && isBranch) {
+    std::cerr << "ERROR: Branch has no operation defined." << std::endl;
   }
-  return t;
-};
-
-double function::evaluateBranches(double t) const {
+  if (brachOperation != nullptr && isBranch) {
+    t = brachOperation(functions.first->evaluate(t), functions.second->evaluate(t));
+  }
   for (auto& operation : operations) {
     t = operation(t);
   }
   return t;
-}
+};
 
 function createConstantFunction(double val) {
   function f;
