@@ -47,7 +47,7 @@ void postProcess::addFourierPlot(const std::string &name, std::vector<double> &f
 };
 
 void postProcess::createOctavePlotFileFromTokens() {
-  //file << "graphics_toolkit(\"gnuplot\")\n";
+  file << "graphics_toolkit(\"gnuplot\")\n";
   file << "set(0, 'DefaultTextFontSize', 25);";
   file << "set(0, 'DefaultAxesFontSize', 25);";
   addOctaveVarible("t", time);

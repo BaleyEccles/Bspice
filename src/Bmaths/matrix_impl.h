@@ -6,7 +6,7 @@ void matrix<T>::print(const std::string name) const {
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
       if constexpr (std::is_arithmetic<T>::value) {
-        std::cout << std::fixed << std::setprecision(5) << data[i][j] << " ";
+        std::cout << std::scientific << std::setprecision(5) << data[i][j] << " ";
       } else if constexpr (std::is_same<T, symbol>::value) {
         std::cout << data[i][j].name << " ";
       } else if constexpr (std::is_same<T, function>::value) {
