@@ -2,7 +2,7 @@
 
 // data is in a weird format
 // it is a vector of matrix that is similar to syms
-postProcess::postProcess(const std::string& octaveFileName, std::vector<double> &time, std::vector<matrix<double>> &data, matrix<symbol> &syms, std::vector<std::shared_ptr<fileParser::token>> &tokens)
+postProcess::postProcess(const std::string& octaveFileName, std::vector<double> &time, std::vector<matrix<double>> &data, matrix<symbol> &syms, std::vector<std::shared_ptr<token>> &tokens)
   : fileName(octaveFileName), time(time), data(data), syms(syms), tokens(tokens) {
 
   file.open(fileName);
@@ -47,34 +47,34 @@ void postProcess::addFourierPlot(const std::string &name, std::vector<double> &f
 };
 
 void postProcess::createOctavePlotFileFromTokens() {
-  file << "graphics_toolkit(\"gnuplot\")\n";
+  //file << "graphics_toolkit(\"gnuplot\")\n";
   file << "set(0, 'DefaultTextFontSize', 25);";
   file << "set(0, 'DefaultAxesFontSize', 25);";
   addOctaveVarible("t", time);
   
   for (auto& token : tokens) {
-    if (token->type == fileParser::token::PLOT) {
-      auto plotToken = dynamic_cast<fileParser::plotToken *>(token.get());
+    if (token->type == token::PLOT) {
+      auto plotT = dynamic_cast<plotToken *>(token.get());
       bool isValidPlot = false;
       for (int row = 0; row < syms.rows; row++) {
-        if (syms.data[row][0].name == plotToken->name) {
+        if (syms.data[row][0].name == plotT->name) {
           std::vector<double> plotData;
           for (auto& d : data) {
             plotData.push_back(d.data[row][0]);
           }
-          addPlot(plotToken->name, plotData);
+          addPlot(plotT->name, plotData);
           isValidPlot = true;
         }
       }
       if (!isValidPlot) {
-        std::cerr << "ERROR: `" << plotToken->name << "` was not able to be plotted." << std::endl;
+        std::cerr << "ERROR: `" << plotT->name << "` was not able to be plotted." << std::endl;
       }
 
-    } else if (token->type == fileParser::token::FOURIER) {
-      auto fourierToken = dynamic_cast<fileParser::fourierToken *>(token.get());
+    } else if (token->type == token::FOURIER) {
+      auto fourierT = dynamic_cast<fourierToken *>(token.get());
       bool isValidPlot = false;
       for (int row = 0; row < syms.rows; row++) {
-        if (syms.data[row][0].name == fourierToken->transformVarible) {
+        if (syms.data[row][0].name == fourierT->transformVarible) {
           std::vector<double> toTransformData;
           for (auto& d : data) {
             toTransformData.push_back(d.data[row][0]);
@@ -84,12 +84,12 @@ void postProcess::createOctavePlotFileFromTokens() {
             (int)toTransformData.size(), 1
           };
           FourierTransform dft(time, toTransform);
-          addFourierPlot(fourierToken->transformVarible, dft.frequency.data[0], dft.magnitudes.data[0]);
+          addFourierPlot(fourierT->transformVarible, dft.frequency.data[0], dft.magnitudes.data[0]);
           isValidPlot = true;
         }
       }
       if (!isValidPlot) {
-        std::cerr << "ERROR: `" << fourierToken->transformVarible << "` was not able to be plotted." << std::endl;
+        std::cerr << "ERROR: `" << fourierT->transformVarible << "` was not able to be plotted." << std::endl;
       }
 
     }

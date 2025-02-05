@@ -9,7 +9,8 @@
 
 
 int main() {
-  std::vector<std::shared_ptr<fileParser::token>> tokens = fileParser::parseFile("../Examples/inductorCapacitorAC.circuit");
+  fileParser parsedFile("../Examples/inductorCapacitor.circuit");
+  auto tokens = parsedFile.tokens;
   Circuit<double, double, function> circuit = createCircuitFromTokens<double, double, function>(tokens);
   circuit.calculate();
   auto initalValues = circuit.initalValues;

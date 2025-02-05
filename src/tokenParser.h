@@ -8,12 +8,12 @@
 #include <fstream>
 
 template<typename T1, typename T2, typename T3>
-Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<fileParser::token>>& tokens);
+Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<token>>& tokens);
 
 
 class postProcess {
 public:
-  postProcess(const std::string& octaveFileName, std::vector<double> &time, std::vector<matrix<double>> &data, matrix<symbol> &syms, std::vector<std::shared_ptr<fileParser::token>> &tokens);
+  postProcess(const std::string& octaveFileName, std::vector<double> &time, std::vector<matrix<double>> &data, matrix<symbol> &syms, std::vector<std::shared_ptr<token>> &tokens);
   ~postProcess();
   
 private:
@@ -21,7 +21,7 @@ private:
   std::vector<double> time;
   std::vector<matrix<double>> data;
   matrix<symbol> syms;
-  std::vector<std::shared_ptr<fileParser::token>> tokens;
+  std::vector<std::shared_ptr<token>> tokens;
   std::ofstream file;
   
   void addOctaveVarible(const std::string &name, std::vector<double> &plotData);
