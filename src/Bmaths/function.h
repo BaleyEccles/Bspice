@@ -72,6 +72,8 @@ namespace Operation {
   operationPtr sin(double A = 1.0, double frequency = 1/(2*std::numbers::pi), double theta = 0);
   
   operationPtr cos(double A = 1.0, double frequency = 1/(2*std::numbers::pi), double theta = 0);
+  
+  operationPtr scaleToOne();
   // TODO: add more functions
   
 };

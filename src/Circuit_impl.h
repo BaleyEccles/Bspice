@@ -1,3 +1,4 @@
+#include "Bmaths/function.h"
 template<typename T1, typename T2, typename T3>
 Circuit<T1, T2, T3>::Circuit() {}
 template<typename T1, typename T2, typename T3>
@@ -157,6 +158,15 @@ function Circuit<T1, T2, T3>::createVoltageFunction(VoltageSource::functionType&
       std::cerr << "ERROR: AC must have three arguments: magnitude, frequency and phase shift." << std::endl;
     }
     f.addOperation(Operation::sin(values[0], values[1], values[2]));
+    break;
+  }
+  case VoltageSource::functionType::SQUARE_WAVE: {
+    if (values.size() != 3) {
+      std::cerr << "ERROR: SQUARE waves must have three arguments: magnitude, frequency and phase shift." << std::endl;
+    }
+    f.addOperation(Operation::sin(1.0, values[1], values[2]));
+    f.addOperation(Operation::scaleToOne());
+    f.addOperation(Operation::multiply(values[0]));
     break;
   }
   default: {

@@ -1,0 +1,15 @@
+voltage_source{Vcc}{SQUARE}{5}{50}{0}
+resistor{R1}{500}
+resistor{R2}{10}
+capacitor{C1}{1m}
+inductor{L1}{1}
+node{e1}{Vcc}{R1}
+node{e2}{R1}{R2}{C1}
+node{e3}{R2}{L1}
+node{GND}{L1}{C1}
+plot{e1}
+plot{e2}
+plot{e3}
+fourier_transform{f_e2}{e2}
+fourier_transform{f_e3}{e3}
+

@@ -1,12 +1,16 @@
 voltage_source{Va}{AC}{5}{23}{0}
 voltage_source{Vb}{AC}{0.5}{2000}{0}
+
 resistor{R1}{16k}
 capacitor{C1}{100n}
+
 node{e1}{Va}{Vb}
 node{e2}{Vb}{R1}
 node{e3}{R1}{C1}
 node{GND}{Va}{C1}
+
 plot{e2}
 plot{e3}
+
 fourier_transform{f_e2}{e2}
 fourier_transform{f_e3}{e3}

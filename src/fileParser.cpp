@@ -152,11 +152,19 @@ void fileParser::addComponent(const std::string &line) {
   } // TODO: Error handling for AC/sqaure wave signals
   if (component->componentType == VOLTAGESOURCE && inputs[1] == "AC") {
     std::string name = getName(inputs[0]);
-    std::cout << "NAME: " <<  name << std::endl;
     double amplitude = getValue(inputs[2]);
     double frequency = getValue(inputs[3]);
     double shift = getValue(inputs[4]);
     component->setFunctionType(VoltageSource::AC);
+    component->addName(name);
+    component->addValues({amplitude, frequency, shift});
+    tokens.push_back(component);
+  } else if(component->componentType == VOLTAGESOURCE && inputs[1] == "SQUARE") {
+    std::string name = getName(inputs[0]);
+    double amplitude = getValue(inputs[2]);
+    double frequency = getValue(inputs[3]);
+    double shift = getValue(inputs[4]);
+    component->setFunctionType(VoltageSource::SQUARE_WAVE);
     component->addName(name);
     component->addValues({amplitude, frequency, shift});
     tokens.push_back(component);

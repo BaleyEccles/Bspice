@@ -43,6 +43,14 @@ namespace Operation {
   operationPtr cos(double A, double frequency, double theta) {
     return [A, frequency, theta](double t) { return A*std::cos(frequency*2*std::numbers::pi + theta); };
   }
+
+  operationPtr scaleToOne() {
+    return [](double t) {
+      if (t > 0) return 1;
+      if (t < 0) return -1;
+      return 0;
+    };
+  }
   // TODO: add more functions
   
 };

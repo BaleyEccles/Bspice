@@ -9,7 +9,7 @@
 
 
 int main() {
-  fileParser parsedFile("../Examples/Low-Pass-100Hz.circuit");
+  fileParser parsedFile("../Examples/inductorCapacitorSquareWave.circuit");
   auto tokens = parsedFile.tokens;
   Circuit<double, double, function> circuit = createCircuitFromTokens<double, double, function>(tokens);
   circuit.calculate();
@@ -19,7 +19,7 @@ int main() {
   auto f = circuit.f;
   auto s = circuit.syms;
   double timeStep = 0.00001;
-  double endTime = 0.1;
+  double endTime = 0.5;
   DifferentialAlgebraicEquation DAE = {A, E, f, s};
   auto output = DAESolve2(DAE, initalValues, timeStep, endTime);
   postProcess("plotData.m", output.first, output.second, s, tokens);
