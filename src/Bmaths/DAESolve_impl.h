@@ -1,4 +1,5 @@
  
+#include <type_traits>
 template<typename T1, typename T2, typename T3>
 std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(DifferentialAlgebraicEquation<T1, T2, T3> DAE, matrix<double> initalGuess, double timeStep, double timeEnd) {
   std::vector<matrix<double>> results;
@@ -71,7 +72,23 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(Differenti
     results.push_back(nextStep);
     time.push_back(tn);
   };
-  auto output = std::pair<std::vector<double>, std::vector<matrix<double>>>{time, results};
+  
+  std::vector<matrix<double>> resultsReformated;
+  for (auto& r : results) {
+    matrix<double> m = {
+      {{}},
+      0, 1
+    };
+    resultsReformated.push_back(m);
+  }
+  for (auto& r : results) {
+    for (int row = 0; row < results[0].rows; row++) {
+      resultsReformated[row].data[0].push_back(r.data[row][0]);
+      resultsReformated[row].cols++;
+    }
+  }
+
+  auto output = std::pair<std::vector<double>, std::vector<matrix<double>>>{time, resultsReformated};
   return output;
 }
 

@@ -3,13 +3,12 @@
 #include "fileParser.h"
 #include "tokenParser.h"
 #include <cstdio>
-#include <memory>
 #include <string>
 #include <vector>
 
 
 int main() {
-  fileParser parsedFile("../Examples/inductorCapacitorSquareWave.circuit");
+  fileParser parsedFile("../Examples/inductorCapacitor.circuit");
   auto tokens = parsedFile.tokens;
   Circuit<double, double, function> circuit = createCircuitFromTokens<double, double, function>(tokens);
   circuit.calculate();
@@ -18,8 +17,8 @@ int main() {
   auto E = circuit.E;
   auto f = circuit.f;
   auto s = circuit.syms;
-  double timeStep = 0.00001;
-  double endTime = 0.5;
+  double timeStep = 0.001;
+  double endTime = 1;
   DifferentialAlgebraicEquation DAE = {A, E, f, s};
   auto output = DAESolve2(DAE, initalValues, timeStep, endTime);
   postProcess("plotData.m", output.first, output.second, s, tokens);

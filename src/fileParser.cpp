@@ -18,9 +18,11 @@ plotToken::plotToken()
 fourierToken::fourierToken()
   : token(token::FOURIER){};
 
+calculateToken::calculateToken()
+  : token(token::CALCULATE){};
 
-
-
+dataToken::dataToken(std::string nameIn)
+  : token(token::DATA), name(nameIn){};
 
 
 
@@ -52,6 +54,8 @@ std::vector<std::shared_ptr<token>> fileParser::tokenize(const std::string& line
       addPlot(line);
     } else if (tokenIsFourier(currentToken)) {
       addFourier(line);
+    } else if (tokenIsCalculate(currentToken)) {
+      addCalculate(line);
     }
   }
 
@@ -141,6 +145,134 @@ double fileParser::getValue(std::string &value) {
   return number;
 }
 
+
+calculateToken::calculateType fileParser::getCalculateType(std::string input) {
+  if (input == "VOLTAGE") {
+    return calculateToken::VOLTAGE;
+  } else  if (input == "CURRENT") {
+    return calculateToken::CURRENT;
+  } else  if (input == "ADD") {
+    return calculateToken::ADD;
+  } else  if (input == "SUBTRACT") {
+    return calculateToken::SUBTRACT;
+  }
+  std::cerr << "ERROR: Calculate type not handled." << std::endl;
+  return calculateToken::VOLTAGE;
+}
+
+bool fileParser::isVaribleDefined(std::string varName) {
+  for(auto& token : tokens) {
+    switch (token->type) {
+    case token::PLOT: {
+      break;
+    }
+    case token::COMPONENT: {
+      auto t = dynamic_cast<componentToken *>(token.get());
+      if (t->name == varName) { return true; }
+      break;
+    }
+    case token::NODE: {
+      auto t = dynamic_cast<nodeToken *>(token.get());
+      if (t->name == varName) { return true; }
+      break;
+    }
+    case token::FOURIER: {
+      auto t = dynamic_cast<fourierToken *>(token.get());
+      if (t->name == varName) { return true; }
+      break;
+    }
+    case token::CALCULATE: {
+      auto t = dynamic_cast<calculateToken *>(token.get());
+      if (t->name == varName) { return true; }
+      break;
+    }
+    default: {
+      std::cerr << "ERROR: Varible type not detected." << std::endl;
+      break;
+    }
+    }
+  }
+  return false;
+}
+
+bool fileParser::isComponentDefined(std::string cName) {
+  for(auto& token : tokens) {
+    if (token->type == token::COMPONENT) {
+      auto t = dynamic_cast<componentToken *>(token.get());
+      if (t->name == cName) { return true; }
+    }
+  }
+  return false;
+}
+  
+
+void fileParser::verifyCalculateArguments(calculateToken::calculateType type, std::vector<std::string> inputs) {
+  switch (type) {
+  case calculateToken::VOLTAGE: {
+    if (inputs.size() != 3) {
+      std::cerr << "ERROR: Calculating VOLTAGE must have three args." << std::endl;
+    } if (isVaribleDefined(inputs[1])) {
+      std::cerr << "ERROR: Unable to define varible '" << inputs[1] << "', it is already defined." << std::endl;
+    } if (!isComponentDefined(inputs[2])) {
+      std::cerr << "ERROR: Unable to calculate '" << inputs[1] << "', the component '" << inputs[2] << "' does not exist." << std::endl;
+    }
+    break;
+  }
+  case calculateToken::CURRENT: {
+    if (inputs.size() != 3) {
+      std::cerr << "ERROR: Calculating CURRENT must have three args." << std::endl;
+    } if (isVaribleDefined(inputs[1])) {
+      std::cerr << "ERROR: Unable to define varible '" << inputs[1] << "', it is already defined." << std::endl;
+    } if (!isComponentDefined(inputs[2])) {
+      std::cerr << "ERROR: Unable to calculate '" << inputs[1] << "', the component '" << inputs[2] << "' does not exist." << std::endl;
+    }
+    break;
+  }
+  default: {
+    std::cerr << "ERROR: Calculate type not handled." << std::endl;
+    break;
+  }
+  }
+}
+
+std::shared_ptr<token> fileParser::getTokenPtrFromName(const std::string& argName) {
+  for(auto& token : tokens) {
+    switch (token->type) {
+    case token::PLOT: {
+      break;
+    }
+    case token::COMPONENT: {
+      auto t = dynamic_cast<componentToken *>(token.get());
+      if (t->name == argName) { return token; }
+      break;
+    }
+    case token::NODE: {
+      auto t = dynamic_cast<nodeToken *>(token.get());
+      if (t->name == argName) { return token; }
+      break;
+    }
+    case token::FOURIER: {
+      auto t = dynamic_cast<fourierToken *>(token.get());
+      if (t->name == argName) { return token; }
+      break;
+    }
+    case token::CALCULATE: {
+      auto t = dynamic_cast<calculateToken *>(token.get());
+      if (t->name == argName) { return token; }
+      break;
+    }
+    default: {
+      std::cerr << "ERROR: Varible type not detected." << std::endl;
+      break;
+    }
+    }
+
+  }
+  std::cerr << "ERROR: Unable to find token, this should be unreachable" << std::endl;
+  std::cerr << "\tToken name is:" << argName << std::endl;
+  return nullptr;
+}
+
 void fileParser::addComponent(const std::string &line) {
   std::shared_ptr<componentToken> component = getComponent(line);
 
@@ -158,7 +290,6 @@ void fileParser::addComponent(const std::string &line) {
     component->setFunctionType(VoltageSource::AC);
     component->addName(name);
     component->addValues({amplitude, frequency, shift});
-    tokens.push_back(component);
   } else if(component->componentType == VOLTAGESOURCE && inputs[1] == "SQUARE") {
     std::string name = getName(inputs[0]);
     double amplitude = getValue(inputs[2]);
@@ -167,15 +298,16 @@ void fileParser::addComponent(const std::string &line) {
     component->setFunctionType(VoltageSource::SQUARE_WAVE);
     component->addName(name);
     component->addValues({amplitude, frequency, shift});
-    tokens.push_back(component);
   } else {
     std::string name = getName(inputs[0]);
     double value = getValue(inputs[1]);
     component->setFunctionType(VoltageSource::NONE);
     component->addName(name);
     component->addValue(value);
-    tokens.push_back(component);
   }
+  component->voltageDataToken = getData("v_" + component->name);
+  component->currentDataToken = getData("i_" + component->name);
+  tokens.push_back(component);
 }
 
 void fileParser::addNode(const std::string &line) {
@@ -221,6 +353,7 @@ void fileParser::addNode(const std::string &line) {
 
     
   node->addComponents(componentTokens);
+  node->voltageDataToken = getData(node->name);
   tokens.push_back(node);
 }
 
@@ -234,8 +367,29 @@ void fileParser::addPlot(const std::string &line) {
   // FIXME: Verify that toPlot is a valid voltage/current/node etc
   std::string toPlot = getName(inputs[0]);
   plot->addPlot(toPlot);
+  plot->dataToken = getData(plot->name);
   tokens.push_back(plot);
 }
+
+
+void fileParser::addCalculate(const std::string &line) {
+  std::shared_ptr<calculateToken> calculate = getCalculate(line);
+  std::vector<std::string> inputs = getInputs(line);
+  calculateToken::calculateType calculateType = getCalculateType(inputs[0]);
+  verifyCalculateArguments(calculateType, inputs);
+  std::vector<std::shared_ptr<token>> args;
+  std::vector<std::string> argStrings(inputs.begin() + 2, inputs.end());
+  for (auto& s : argStrings) {
+    args.push_back(getTokenPtrFromName(s));
+  }
+  calculate->addArgs(args);
+  calculate->addName(inputs[1]);
+  std::cout << inputs[1] << " : " << calculate->name << std::endl;
+  calculate->addType(calculateType);
+  calculate->output = getData(calculate->name);
+  tokens.push_back(calculate);
+}
+
 
 
 void fileParser::addFourier(const std::string &line) {
@@ -248,7 +402,9 @@ void fileParser::addFourier(const std::string &line) {
   std::string varibleName = getName(inputs[0]);
   // FIXME: Verify that toTransform is a valid voltage/current/node etc
   std::string toTransform = getName(inputs[1]);
-  fourier->addFourier(varibleName, toTransform);
+  fourier->addFourier(varibleName);
+  fourier->outputDataToken = getData(varibleName);
+  fourier->inputDataToken = getData(toTransform);
   tokens.push_back(fourier);
 }
 
@@ -265,6 +421,73 @@ std::shared_ptr<fourierToken> fileParser::getFourier(const std::string &line) {
 std::shared_ptr<plotToken> fileParser::getPlot(const std::string &line) {
   return std::make_shared<plotToken>();
 }
+
+std::shared_ptr<calculateToken> fileParser::getCalculate(const std::string &line) {
+  return std::make_shared<calculateToken>();
+}
+
+std::shared_ptr<dataToken> fileParser::getData(std::string name) {
+  for (auto& token : tokens) {
+    switch (token->type) {
+    case token::COMPONENT: {
+      auto t = dynamic_cast<componentToken *>(token.get());
+      std::shared_ptr<dataToken> vDataT = std::dynamic_pointer_cast<dataToken>(t->voltageDataToken);
+      if (vDataT->name == name) {
+        return vDataT;
+      }
+      std::shared_ptr<dataToken> cDataT = std::dynamic_pointer_cast<dataToken>(t->currentDataToken);
+      if (cDataT->name == name) {
+        return cDataT;
+      }
+      break;
+    }
+    case token::NODE: {
+      auto t = dynamic_cast<nodeToken *>(token.get());
+      std::shared_ptr<dataToken> dataT = std::dynamic_pointer_cast<dataToken>(t->voltageDataToken);
+      if (dataT->name == name) {
+        return dataT;
+      }
+      break;
+    }
+    case token::PLOT: {
+      auto t = dynamic_cast<plotToken *>(token.get());
+      std::shared_ptr<dataToken> dataT = std::dynamic_pointer_cast<dataToken>(t->dataToken);
+      if (dataT->name == name) {
+        return dataT;
+      }
+      break;
+    }
+    case token::FOURIER: {
+      auto t = dynamic_cast<fourierToken *>(token.get());
+      std::shared_ptr<dataToken> inDataT = std::dynamic_pointer_cast<dataToken>(t->inputDataToken);
+      if (inDataT->name == name) {
+        return inDataT;
+      }
+      std::shared_ptr<dataToken> outDataT = std::dynamic_pointer_cast<dataToken>(t->outputDataToken);
+      if (outDataT->name == name) {
+        return outDataT;
+      }
+      break;
+    }
+    case token::CALCULATE: {
+      auto t = dynamic_cast<calculateToken *>(token.get());
+      std::shared_ptr<dataToken> dataT = std::dynamic_pointer_cast<dataToken>(t->output);
+      if (dataT->name == name) {
+        return dataT;
+      }
+      break;
+    }
+    case token::DATA: {
+      break;
+    }
+    default:
+      std::cerr << "ERROR: Token type not handled" << std::endl;
+      break;
+    }
+  }
+  return std::make_shared<dataToken>(name);
+}
+
 
 std::shared_ptr<componentToken> fileParser::getComponent(const std::string &line) {
   std::string resistor = "resistor";
@@ -310,4 +533,9 @@ bool fileParser::tokenIsFourier(std::string token) {
   // FIXME: make this more elegent 
   return token == "fourier_transform";
 }
+
+bool fileParser::tokenIsCalculate(std::string token) {
+    return token == "calculate";
+}
+
 
