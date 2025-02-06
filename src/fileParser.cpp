@@ -384,7 +384,6 @@ void fileParser::addCalculate(const std::string &line) {
   }
   calculate->addArgs(args);
   calculate->addName(inputs[1]);
-  std::cout << inputs[1] << " : " << calculate->name << std::endl;
   calculate->addType(calculateType);
   calculate->output = getData(calculate->name);
   tokens.push_back(calculate);

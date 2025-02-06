@@ -36,7 +36,7 @@ public:
     if (f2 == nullptr) {
       std::cerr << "ERROR: Unable to add branches, f2 is nullptr." << std::endl;
     }
-    std::cout << "added branch" << std::endl;
+    //std::cout << "added branch" << std::endl;
     isBranch = true;
     brachOperation = b;
     functions = std::make_pair(f1, f2);

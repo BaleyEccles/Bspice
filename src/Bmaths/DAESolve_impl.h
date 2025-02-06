@@ -9,10 +9,10 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(Differenti
   auto DEIdx = getDifferentailEquationIdxFromDAE(DAE);
   auto DEColIdx = getDEColIdx(DAE.E);
   auto DEs = getDifferentailEquationsFromDAE(DAE);
-  DEs.E.print("E");
+  //DEs.E.print("E");
   auto AEIdx = getAlgebraicEquationIdxFromDAE(DAE);
   auto AEs = getAlgebraicEquationsFromDAE(DAE);
-  AEs.A.print("A");
+  //AEs.A.print("A");
     
   for (int i = 0; i < steps; i++) {
     double tn = i * timeStep - timeStep;

@@ -30,7 +30,6 @@ void postProcess::fillInDataTokens() {
       int idx = findIdxFromName(d->name);
       if (idx >= 0) {
         d->data = {data[idx].data[0]};
-        std::cout << "added data for " << t->name << "/" << d->name << std::endl;
       }
       
       break;
@@ -41,14 +40,12 @@ void postProcess::fillInDataTokens() {
       int idx1 = findIdxFromName(d1->name);
       if (idx1 >= 0) {
         d1->data = {data[idx1].data[0]};
-        std::cout << "added data for " << t->name << "/" << d1->name << std::endl;
       }
 
       auto d2 = dynamic_cast<dataToken *>(t->currentDataToken.get());
       int idx2 = findIdxFromName(d2->name);
       if (idx2 >= 0) {
         d2->data = {data[idx2].data[0]};
-        std::cout << "added data for " << t->name << "/" << d2->name << std::endl;
       }
 
       break;
@@ -59,7 +56,6 @@ void postProcess::fillInDataTokens() {
       int idx = findIdxFromName(d->name);
       if (idx >= 0) {
         d->data = {data[idx].data[0]};
-        std::cout << "added data for " << t->name << "/" << d->name << std::endl;
       }
       break;
     }
@@ -126,11 +122,9 @@ void postProcess::createOctavePlotFileFromTokens() {
       auto plotT = dynamic_cast<plotToken *>(token.get());
       bool isValidPlot = false;
       auto dataT = dynamic_cast<dataToken *>(plotT->dataToken.get());
-      std::cout << dataT->name << std::endl;
       //for (auto i : dataT->data[0]) {
       //  std::cout << i << " ";
       //}
-      std::cout << dataT->data[0].size() << std::endl;
       addPlot(plotT->name, dataT->data[0]);
       if (dataT->data[0].size() == time.size()) {
         isValidPlot = true;

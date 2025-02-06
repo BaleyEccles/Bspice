@@ -24,9 +24,9 @@ matrix<double> NewtonsMethod(matrix<double> A, matrix<double> f,
     if (i >= maxIt - 1) {
       std::cerr << "Newtons method did not converge" << std::endl;
       std::cout << "||delta||_2: " << std::scientific << std::setprecision(4) << delta.norm(2) << std::endl;
-      A.print("A = ");
-      F.print("F = ");
-      guess.print("Result = ");
+      //A.print("A = ");
+      //F.print("F = ");
+      //guess.print("Result = ");
     }
   }
   return guess;

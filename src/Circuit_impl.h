@@ -1,4 +1,5 @@
 #include "Bmaths/function.h"
+
 template<typename T1, typename T2, typename T3>
 Circuit<T1, T2, T3>::Circuit() {}
 template<typename T1, typename T2, typename T3>
@@ -204,10 +205,8 @@ int Circuit<T1, T2, T3>::findNodeLocationFromNode(Node *node) {
 }
 template<typename T1, typename T2, typename T3>
 int Circuit<T1, T2, T3>::findNodeLocationFromSymbol(std::string symName) {
-  std::cout << symName << std::endl;
   for (int i = 0; i < syms.rows; i++) {
     for (int j = 0; j < syms.cols; j++) {
-      std::cout << syms.data[i][j].name << std::endl;
       if (syms.data[i][j].name == symName) {
         return i;
       }
