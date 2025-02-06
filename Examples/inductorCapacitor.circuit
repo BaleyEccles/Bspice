@@ -12,3 +12,7 @@ plot{e2}
 plot{e3}
 fourier_transform{f_e2}{e2}
 fourier_transform{f_e3}{e3}
+calculate{VOLTAGE}{V_R1}{R1}
+plot{V_R1}
+calculate{CURRENT}{I_R1}{R1}
+plot{I_R1}
