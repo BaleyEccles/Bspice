@@ -1,3 +1,4 @@
+#include "fileParser.h"
 template<typename T1, typename T2, typename T3>
 Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<token>>& tokens) {
   Circuit<T1, T2, T3> circuit;
@@ -10,22 +11,26 @@ Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<token>>&
         auto componentT = dynamic_cast<componentToken *>(component.get());
         switch(componentT->componentType){
         case ComponentType::VOLTAGESOURCE: {
-          std::shared_ptr<Component> c = std::make_shared<VoltageSource>(componentT->name, componentT->fType, componentT->values);;
+          std::shared_ptr<Component> c = std::make_shared<VoltageSource>(componentT->name, componentT->fType, componentT->values);
+          componentT->circuitComponentPtr = c;
           node->addComponent(c);
           break;
         }
         case ComponentType::RESISTOR: {
           auto c = std::make_shared<Resistor>(componentT->name, componentT->values[0]);
+          componentT->circuitComponentPtr = c;
           node->addComponent(c);
           break;
         }
         case ComponentType::CAPACITOR: {
           auto c = std::make_shared<Capacitor>(componentT->name, componentT->values[0]);
+          componentT->circuitComponentPtr = c;
           node->addComponent(c);
           break;
         }
         case ComponentType::INDUCTOR: {
           auto c = std::make_shared<Inductor>(componentT->name, componentT->values[0]);
+          componentT->circuitComponentPtr = c;
           node->addComponent(c);
           break;
         }
@@ -41,4 +46,5 @@ Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<token>>&
   }
   return circuit;
 }
+
 

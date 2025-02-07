@@ -173,7 +173,6 @@ bool fileParser::isVaribleDefined(std::string varName) {
     }
     case token::NODE: {
       auto t = dynamic_cast<nodeToken *>(token.get());
-      std::cout <<t->name << " " << varName << std::endl;
       if (t->name == varName) { return true; }
       break;
     }

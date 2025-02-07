@@ -16,6 +16,10 @@ calculate{VOLTAGE}{V_R1}{R1}
 plot{V_R1}
 calculate{CURRENT}{I_R1}{R1}
 plot{I_R1}
+calculate{CURRENT}{I_C1}{C1}
+plot{I_C1}
+calculate{VOLTAGE}{V_C1}{C1}
+plot{V_C1}
 calculate{ADD}{add}{e3}{e2}
 plot{add}
 calculate{SUBTRACT}{sub}{e3}{e2}

@@ -1,4 +1,5 @@
 #include "tokenParser.h"
+#include "Circuit.h"
 #include "fileParser.h"
 #include <memory>
 
@@ -191,8 +192,25 @@ std::vector<double> postProcess::calculateCurrent(std::shared_ptr<token> t) {
     auto voltage = calculateVoltage(t);
     
     std::vector<double> output(voltage.size(), 0.0);
+    double resistance = dynamic_cast<Resistor *>(componentT->circuitComponentPtr.get())->Resistance;
     for (int i = 0; i < voltage.size(); i++) {
-      output[i] = voltage[i]/1.0; // FIXME: I need the resisistance
+      output[i] = voltage[i]/resistance;
+    }
+    return output;
+    break;
+  }
+  case CAPACITOR: { // use I = C*dV/dt
+    std::vector<std::shared_ptr<token>> connectedNodes = getConnectedNodesFromComponentPtr(t);
+    if (connectedNodes.size() != 2) {
+      std::cerr << "ERROR: Voltage calculation failed, too many or not enough nodes." << std::endl;
+    }
+    auto voltage = calculateVoltage(t);
+    auto d_voltage_dt = differentiateVector(time, voltage);
+    
+    std::vector<double> output(voltage.size(), 0.0);
+    double capacitance = dynamic_cast<Capacitor *>(componentT->circuitComponentPtr.get())->Capacitance;
+    for (int i = 0; i < voltage.size(); i++) {
+      output[i] = capacitance*d_voltage_dt[i];
     }
     return output;
     break;
@@ -241,6 +259,7 @@ std::vector<double> postProcess::calculateAdd(std::shared_ptr<token> t1, std::sh
 std::vector<double> postProcess::calculateVoltage(std::shared_ptr<token> t) {
   auto componentT = dynamic_cast<componentToken *>(t.get());
   switch (componentT->componentType) {
+  case CAPACITOR:
   case RESISTOR: { // use V = node1 - node2
     std::vector<std::shared_ptr<token>> connectedNodes = getConnectedNodesFromComponentPtr(t);
     if (connectedNodes.size() != 2) {
@@ -258,6 +277,7 @@ std::vector<double> postProcess::calculateVoltage(std::shared_ptr<token> t) {
     return output;
     break;
   }
+
   default: {
     std::cerr << "ERROR: Component type not handled for calculation" << std::endl;
   }

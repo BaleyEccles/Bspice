@@ -31,6 +31,7 @@ public:
   ComponentType componentType;
   VoltageSource::functionType fType; // For functions ie. AC, square wave etc
   std::shared_ptr<token> voltageDataToken, currentDataToken;
+  std::shared_ptr<Component> circuitComponentPtr;
   inline void addName(std::string componentName) {name = componentName;};
   inline void setFunctionType(VoltageSource::functionType type) {fType = type;};
   inline void addValue(double componentValue) {values.push_back(componentValue);};

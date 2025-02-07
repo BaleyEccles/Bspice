@@ -12,6 +12,7 @@
 #include "AlgebraicEquationSolver.h"
 #include "complexNumbers.h"
 #include "FourierTransform.h"
+#include "calculus.h"
 
 struct symbol {
   std::string name;
