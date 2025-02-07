@@ -33,6 +33,8 @@ private:
   std::vector<std::shared_ptr<token>> getConnectedNodesFromComponentPtr(std::shared_ptr<token> componentT);
   std::vector<double> calculateVoltage(std::shared_ptr<token> token);
   std::vector<double> calculateCurrent(std::shared_ptr<token> t);
+  std::vector<double> calculateAdd(std::shared_ptr<token> t1, std::shared_ptr<token> t2);
+  std::vector<double> calculateSubtract(std::shared_ptr<token> t1, std::shared_ptr<token> t2);
   std::vector<double> getNodeDataFromName(std::shared_ptr<token> t);
   void fillInDataTokens();
   int findIdxFromName(std::string name);

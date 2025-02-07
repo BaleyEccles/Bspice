@@ -155,12 +155,18 @@ void postProcess::createOctavePlotFileFromTokens() {
       switch (calcT->cType) {
       case calculateToken::VOLTAGE: {
         calcT->addData(calculateVoltage(calcT->args[0]));
-        //addPlot(calcT->name, plotData);
         break;
       }
       case calculateToken::CURRENT: {
         calcT->addData(calculateCurrent(calcT->args[0]));
-        //addPlot(calcT->name, plotData);
+        break;
+      }
+      case calculateToken::ADD: {
+        calcT->addData(calculateAdd(calcT->args[0], calcT->args[1]));
+        break;
+      }
+      case calculateToken::SUBTRACT: {
+        calcT->addData(calculateSubtract(calcT->args[0], calcT->args[1]));
         break;
       }
       default: {
@@ -199,6 +205,38 @@ std::vector<double> postProcess::calculateCurrent(std::shared_ptr<token> t) {
   return std::vector<double>();
 }
 
+std::vector<double> postProcess::calculateSubtract(std::shared_ptr<token> t1, std::shared_ptr<token> t2) {
+    auto var1T = dynamic_cast<dataToken *>(t1.get());
+  auto var2T = dynamic_cast<dataToken *>(t2.get());
+  
+  auto v1 = var1T->data[0];
+  auto v2 = var2T->data[0];
+  if (v1.size() != v2.size()) {
+    std::cerr << "ERROR: For some reason varibles have different sizes?" << std::endl;
+  }
+  std::vector<double> output(v1.size(), 0.0);
+  for (int i = 0; i < v1.size(); i++) {
+    output[i] = v1[i] - v2[i];
+  }
+  return output;
+};
+ 
+std::vector<double> postProcess::calculateAdd(std::shared_ptr<token> t1, std::shared_ptr<token> t2) {
+  auto var1T = dynamic_cast<dataToken *>(t1.get());
+  auto var2T = dynamic_cast<dataToken *>(t2.get());
+  
+  auto v1 = var1T->data[0];
+  auto v2 = var2T->data[0];
+  if (v1.size() != v2.size()) {
+    std::cerr << "ERROR: For some reason varibles have different sizes?" << std::endl;
+  }
+  std::vector<double> output(v1.size(), 0.0);
+  for (int i = 0; i < v1.size(); i++) {
+    output[i] = v1[i] + v2[i];
+  }
+  return output;
+
+}
 
 std::vector<double> postProcess::calculateVoltage(std::shared_ptr<token> t) {
   auto componentT = dynamic_cast<componentToken *>(t.get());

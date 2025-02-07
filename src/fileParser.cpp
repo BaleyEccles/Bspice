@@ -173,6 +173,7 @@ bool fileParser::isVaribleDefined(std::string varName) {
     }
     case token::NODE: {
       auto t = dynamic_cast<nodeToken *>(token.get());
+      std::cout <<t->name << " " << varName << std::endl;
       if (t->name == varName) { return true; }
       break;
     }
@@ -183,6 +184,11 @@ bool fileParser::isVaribleDefined(std::string varName) {
     }
     case token::CALCULATE: {
       auto t = dynamic_cast<calculateToken *>(token.get());
+      if (t->name == varName) { return true; }
+      break;
+    }
+    case token::DATA: {
+      auto t = dynamic_cast<dataToken *>(token.get());
       if (t->name == varName) { return true; }
       break;
     }
@@ -228,12 +234,37 @@ void fileParser::verifyCalculateArguments(calculateToken::calculateType type, st
     }
     break;
   }
+  case calculateToken::ADD: {
+    if (inputs.size() != 4) {
+      std::cerr << "ERROR: Calculating ADD must have four args." << std::endl;
+    } if (isVaribleDefined(inputs[1])) {
+      std::cerr << "ERROR: Unable to define varible '" << inputs[1] << "', it is already defined." << std::endl;
+    } if (!isVaribleDefined(inputs[2])) {
+      std::cerr << "ERROR: Unable to calculate '" << inputs[1] << "', the varible '" << inputs[2] << "' does not exist." << std::endl;
+    } if (!isVaribleDefined(inputs[3])) {
+      std::cerr << "ERROR: Unable to calculate '" << inputs[1] << "', the varible '" << inputs[3] << "' does not exist." << std::endl;
+    }
+  }
+    break;
+  case calculateToken::SUBTRACT: {
+    if (inputs.size() != 4) {
+      std::cerr << "ERROR: Calculating SUBTRACT must have four args." << std::endl;
+    } if (isVaribleDefined(inputs[1])) {
+      std::cerr << "ERROR: Unable to define varible '" << inputs[1] << "', it is already defined." << std::endl;
+    } if (!isVaribleDefined(inputs[2])) {
+      std::cerr << "ERROR: Unable to calculate '" << inputs[1] << "', the varible '" << inputs[2] << "' does not exist." << std::endl;
+    } if (!isVaribleDefined(inputs[3])) {
+      std::cerr << "ERROR: Unable to calculate '" << inputs[1] << "', the varible '" << inputs[3] << "' does not exist." << std::endl;
+    }
+    break;
+  }
   default: {
     std::cerr << "ERROR: Calculate type not handled." << std::endl;
     break;
   }
   }
 }
+
 
 std::shared_ptr<token> fileParser::getTokenPtrFromName(const std::string& argName) {
   for(auto& token : tokens) {
@@ -258,6 +289,11 @@ std::shared_ptr<token> fileParser::getTokenPtrFromName(const std::string& argNam
     }
     case token::CALCULATE: {
       auto t = dynamic_cast<calculateToken *>(token.get());
+      if (t->name == argName) { return token; }
+      break;
+    }
+    case token::DATA: {
+      auto t = dynamic_cast<dataToken *>(token.get());
       if (t->name == argName) { return token; }
       break;
     }
@@ -477,6 +513,10 @@ std::shared_ptr<dataToken> fileParser::getData(std::string name) {
       break;
     }
     case token::DATA: {
+      std::shared_ptr<dataToken> dataT = std::dynamic_pointer_cast<dataToken>(token);
+      if (dataT->name == name) {
+        return dataT;
+      }
       break;
     }
     default:
@@ -484,7 +524,9 @@ std::shared_ptr<dataToken> fileParser::getData(std::string name) {
       break;
     }
   }
-  return std::make_shared<dataToken>(name);
+  auto output = std::make_shared<dataToken>(name);
+  tokens.push_back(output);
+  return output;
 }
 
 
