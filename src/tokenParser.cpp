@@ -112,7 +112,7 @@ void postProcess::addFourierPlot(const std::string &name, std::vector<double> fr
 };
 
 void postProcess::createOctavePlotFileFromTokens() {
-  file << "graphics_toolkit(\"gnuplot\")\n";
+  //file << "graphics_toolkit(\"gnuplot\")\n";
   file << "set(0, 'DefaultTextFontSize', 25);";
   file << "set(0, 'DefaultAxesFontSize', 25);";
   addOctaveVarible("t", time);
@@ -215,6 +215,22 @@ std::vector<double> postProcess::calculateCurrent(std::shared_ptr<token> t) {
     return output;
     break;
   }
+  case INDUCTOR: { // use V = L*dI/dt => I = I(0) + \int_{0}^{t] V(t)/L dt
+    std::vector<std::shared_ptr<token>> connectedNodes = getConnectedNodesFromComponentPtr(t);
+    if (connectedNodes.size() != 2) {
+      std::cerr << "ERROR: Voltage calculation failed, too many or not enough nodes." << std::endl;
+    }
+    auto voltage = calculateVoltage(t);
+    auto I_voltage_dt = integrateVectorWithTime(time, voltage);
+    
+    std::vector<double> output(voltage.size(), 0.0);
+    double inductance = dynamic_cast<Inductor *>(componentT->circuitComponentPtr.get())->Inductance;
+    for (int i = 0; i < voltage.size(); i++) {
+      output[i] = I_voltage_dt[i]/inductance;
+    }
+    return output;
+    break;
+  }
   default: {
     std::cerr << "ERROR: Component type not handled for calculation" << std::endl;
   }
@@ -259,6 +275,7 @@ std::vector<double> postProcess::calculateAdd(std::shared_ptr<token> t1, std::sh
 std::vector<double> postProcess::calculateVoltage(std::shared_ptr<token> t) {
   auto componentT = dynamic_cast<componentToken *>(t.get());
   switch (componentT->componentType) {
+  case INDUCTOR:
   case CAPACITOR:
   case RESISTOR: { // use V = node1 - node2
     std::vector<std::shared_ptr<token>> connectedNodes = getConnectedNodesFromComponentPtr(t);
