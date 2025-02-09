@@ -329,7 +329,7 @@ std::vector<double> postProcess::getDataFromToken(std::shared_ptr<token> t) {
     auto T = dynamic_cast<componentToken *>(t.get());
     for (int row = 0; row < syms.rows; row++) {
       for (int col = 0; col < syms.cols; col++) {
-        if (syms.data[row][col].name == T->name) {
+        if (syms.data[row][col].name == "i_" + T->name) {
           return data[row].data[0];
         }
       }
