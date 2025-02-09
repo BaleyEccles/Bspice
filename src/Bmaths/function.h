@@ -79,4 +79,3 @@ namespace Operation {
   // TODO: add more functions
   
 };
-

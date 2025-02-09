@@ -187,7 +187,7 @@ std::vector<double> postProcess::calculateCurrent(std::shared_ptr<token> t) {
   case RESISTOR: { // use I = V/R
     std::vector<std::shared_ptr<token>> connectedNodes = getConnectedNodesFromComponentPtr(t);
     if (connectedNodes.size() != 2) {
-      std::cerr << "ERROR: Voltage calculation failed, too many or not enough nodes." << std::endl;
+      std::cerr << "ERROR: Current calculation failed, too many or not enough nodes." << std::endl;
     }
     auto voltage = calculateVoltage(t);
     
@@ -202,8 +202,9 @@ std::vector<double> postProcess::calculateCurrent(std::shared_ptr<token> t) {
   case CAPACITOR: { // use I = C*dV/dt
     std::vector<std::shared_ptr<token>> connectedNodes = getConnectedNodesFromComponentPtr(t);
     if (connectedNodes.size() != 2) {
-      std::cerr << "ERROR: Voltage calculation failed, too many or not enough nodes." << std::endl;
+      std::cerr << "ERROR: Current calculation failed, too many or not enough nodes." << std::endl;
     }
+    
     auto voltage = calculateVoltage(t);
     auto d_voltage_dt = differentiateVector(time, voltage);
     
@@ -218,15 +219,17 @@ std::vector<double> postProcess::calculateCurrent(std::shared_ptr<token> t) {
   case INDUCTOR: { // use V = L*dI/dt => I = I(0) + \int_{0}^{t] V(t)/L dt
     std::vector<std::shared_ptr<token>> connectedNodes = getConnectedNodesFromComponentPtr(t);
     if (connectedNodes.size() != 2) {
-      std::cerr << "ERROR: Voltage calculation failed, too many or not enough nodes." << std::endl;
+      std::cerr << "ERROR: Current calculation failed, too many or not enough nodes." << std::endl;
     }
-    auto voltage = calculateVoltage(t);
-    auto I_voltage_dt = integrateVectorWithTime(time, voltage);
-    
-    std::vector<double> output(voltage.size(), 0.0);
-    double inductance = dynamic_cast<Inductor *>(componentT->circuitComponentPtr.get())->Inductance;
-    for (int i = 0; i < voltage.size(); i++) {
-      output[i] = I_voltage_dt[i]/inductance;
+    auto output = getDataFromToken(t);
+    if (output.size() == 0) {
+      auto voltage = calculateVoltage(t);
+      auto I_voltage_dt = integrateVectorWithTime(time, voltage);
+      output.resize(voltage.size());
+      double inductance = dynamic_cast<Inductor *>(componentT->circuitComponentPtr.get())->Inductance;
+      for (int i = 0; i < voltage.size(); i++) {
+        output[i] = I_voltage_dt[i]/inductance;
+      }
     }
     return output;
     break;
@@ -282,8 +285,8 @@ std::vector<double> postProcess::calculateVoltage(std::shared_ptr<token> t) {
     if (connectedNodes.size() != 2) {
       std::cerr << "ERROR: Voltage calculation failed, too many or not enough nodes." << std::endl;
     }
-    auto v1 = getNodeDataFromName(connectedNodes[0]);
-    auto v2 = getNodeDataFromName(connectedNodes[1]);
+    auto v1 = getDataFromToken(connectedNodes[0]);
+    auto v2 = getDataFromToken(connectedNodes[1]);
     if (v1.size() != v2.size()) {
       std::cerr << "ERROR: For some reason voltages have different sizes?" << std::endl;
     }
@@ -320,18 +323,37 @@ std::vector<std::shared_ptr<token>> postProcess::getConnectedNodesFromComponentP
   return output;
 }
 
-std::vector<double> postProcess::getNodeDataFromName(std::shared_ptr<token> t) {
-  auto nodeT = dynamic_cast<nodeToken *>(t.get());
-  for (int row = 0; row < syms.rows; row++) {
-    for (int col = 0; col < syms.cols; col++) {
-      if (syms.data[row][col].name == nodeT->name) {
-        return data[row].data[0];
+std::vector<double> postProcess::getDataFromToken(std::shared_ptr<token> t) {
+  switch (t->type) {
+  case token::COMPONENT: {
+    auto T = dynamic_cast<componentToken *>(t.get());
+    for (int row = 0; row < syms.rows; row++) {
+      for (int col = 0; col < syms.cols; col++) {
+        if (syms.data[row][col].name == T->name) {
+          return data[row].data[0];
+        }
       }
     }
+    break;
   }
-  std::cerr << "ERROR: Unable to find node data." << std::endl;
+  case token::NODE: {
+    auto T = dynamic_cast<nodeToken *>(t.get());
+    for (int row = 0; row < syms.rows; row++) {
+      for (int col = 0; col < syms.cols; col++) {
+        if (syms.data[row][col].name == T->name) {
+          return data[row].data[0];
+        }
+      }
+    }
+    break;
+  }
+  default: {
+    std::cerr << "ERROR: Unable to find node data." << std::endl;
+  }
+  }
   return std::vector<double>();
 }
+
 
 
 
