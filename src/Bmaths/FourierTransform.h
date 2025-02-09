@@ -9,61 +9,64 @@ class FourierTransform {
 public:
   FourierTransform(std::vector<double> time, matrix<T> inputData) {
     if (inputData.rows != 1) { std::cerr << "ERROR: Rows of inputData must be 1." << std::endl; }
-    //fft(inputData);
-    DFT(time, inputData);
+    fft(time, inputData);
+    //DFT(time, inputData);
     magnitude();
     //magnitudes.print("mag");
     phase();
   };
   
-  void fft(matrix<T> inputData) {
-    int N = inputData.cols;
+  void fft(std::vector<double> time, matrix<T> inputData) {
+    
+    int N = std::pow(2, (ceil(log2(inputData.cols))));
     transformData.rows = 1;
-    transformData.cols = N;
-    std::vector<std::vector<complexNumber<double>>> transformVec(transformData.rows, std::vector<complexNumber<double>>(transformData.cols, complexNumber<double>(0.0, 0.0)));
-    transformData.data = transformVec;
-    for (int col = 0; col < inputData.cols; col++) {
-      transformData.data[0][col] = complexNumber<double>(inputData.data[0][col], 0.0);
+    transformData.cols = N/2;
+    std::vector<complexNumber<double>> transformVec(N, complexNumber<double>(0.0, 0.0));
+    for (int col = 0; col < transformData.cols; col++) {
+      if (col < inputData.cols) {
+        transformVec[col] = complexNumber<double>(inputData.data[0][col], 0.0);
+      }
     }
 
-    ditfft2(transformData, N);
-    //transformData.print("td");
-    frequency.data.push_back({});
-    for (int col = 0; col < transformData.cols; col++) {
-      frequency.data[0].push_back((double)col);
+    transformVec = ditfft2(transformVec, N);
+    transformVec.resize(N/2);
+    transformData.data = {transformVec};
+
+    double fs = 1/time[time.size() - 1];
+    auto f = std::vector<double>(transformData.cols, 0.0);
+    for (int k = 0; k < N/2; k++) {
+      f[k] = k*fs;
     }
-    frequency.rows = transformData.rows;
-    frequency.cols = transformData.cols;
+    frequency = matrix<double>{{f}, N/2, 1};
   }
   
-  void ditfft2(matrix<complexNumber<double>>& x, int N) {
-	if (N <= 1) {
-      return;
+  std::vector<complexNumber<double>> ditfft2(std::vector<complexNumber<double>>& x, int N) {
+    if (N == 1) {
+        return {x[0]};
     } 
-    matrix<complexNumber<double>> even;
-    even.data = std::vector<std::vector<complexNumber<double>>>(1, std::vector<complexNumber<double>>(N/2, complexNumber<double>(0.0, 0.0)));
-    even.rows = 1;
-    even.cols = N/2;
-    matrix<complexNumber<double>> odd;
-    odd.data = std::vector<std::vector<complexNumber<double>>>(1, std::vector<complexNumber<double>>(N/2, complexNumber<double>(0.0, 0.0)));
-    odd.rows = 1;
-    odd.cols = N/2;
-    for (int i = 0; i < N/2; i++) {
-      even.data[0][i] = x.data[0][i*2];
-      odd.data[0][i] = x.data[0][i*2+1];
+
+    auto even = std::vector<complexNumber<T>>(N / 2);
+    auto odd = std::vector<complexNumber<T>>(N / 2);
+
+    for (int i = 0; i < N / 2; i++) {
+        even[i] = x[i * 2];
+        odd[i] = x[i * 2 + 1];
     }
-	ditfft2(even, N/2);
-	ditfft2(odd, N/2);
-	for (int k = 0; k < N / 2; k++) {
-      complexNumber<double> t = makeComplexNumberFromPolar<double>(1.0, -2*std::numbers::pi*k/N) + odd.data[0][k];
-      x.data[0][k] = even.data[0][k] + t;
-      x.data[0][N / 2 + k] = even.data[0][k] - t;
-	}
+    even = ditfft2(even, N / 2);
+    odd = ditfft2(odd, N / 2);
+
+    std::vector<complexNumber<T>> X(N);
+    for (int k = 0; k < N / 2; k++) {
+        auto w = makeComplexNumberFromPolar<T>(1.0, -2*std::numbers::pi*k/N);
+        X[k] = even[k] + w*odd[k];
+        X[k+N/2] = even[k] - w*odd[k];
+        
+    }
+
+    return X;
   }
 
   void DFT(std::vector<double> time, matrix<T> inputData) {
-    
-    
     // Choosing N to be the lenght of the data is fine
     // If we were to encounter the Nyquist sample rate we would have problems earlier
     double fs = 1/time[time.size() - 1];
@@ -115,12 +118,8 @@ public:
   matrix<double> frequency;
   matrix<double> magnitudes;
   matrix<double> phases;
-
-
   
   double sampleFrequency;
-  
-
 };
 
 
