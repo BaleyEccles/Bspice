@@ -1,0 +1,10 @@
+voltage_source{Vcc}{AC}{5}{3}{0}
+resistor{R1}{500}
+diode{D1}
+node{e1}{Vcc}{R1}
+node{e2}{R1}{D1{+}}
+node{GND}{D1{-}}{Vcc}
+plot{e1}
+plot{e2}
+calculate{VOLTAGE}{V_R1}{R1}
+plot{V_R1}

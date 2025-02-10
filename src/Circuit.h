@@ -11,6 +11,7 @@ enum ComponentType {
   RESISTOR,
   CAPACITOR,
   INDUCTOR,
+  DIODE
 };
 
 class Node;
