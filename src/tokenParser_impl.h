@@ -8,7 +8,7 @@ Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<token>>&
       //std::cout << "processing node " << nodeToken->name << std::endl;
       Node *node = new Node(nodeT->name);
       for (auto& component : nodeT->components) {
-        auto componentT = dynamic_cast<componentToken *>(component.get());
+        auto componentT = dynamic_cast<componentToken *>(component.first.get());
         switch(componentT->componentType){
         case ComponentType::VOLTAGESOURCE: {
           std::shared_ptr<Component> c = std::make_shared<VoltageSource>(componentT->name, componentT->fType, componentT->values);
@@ -32,6 +32,10 @@ Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<token>>&
           auto c = std::make_shared<Inductor>(componentT->name, componentT->values[0]);
           componentT->circuitComponentPtr = c;
           node->addComponent(c);
+          break;
+        }
+        case DIODE: {
+          std::cerr << "TODO: Diodes not done yet" << std::endl;
           break;
         }
         default: {

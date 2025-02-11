@@ -1,4 +1,5 @@
 #include "fileParser.h"
+#include "Circuit.h"
 
 
 
@@ -64,34 +65,47 @@ std::vector<std::shared_ptr<token>> fileParser::tokenize(const std::string& line
 
 
 std::vector<std::string> fileParser::getInputs(const std::string &line) {
-  //std::cout << line << std::endl;
-  std::regex regexPattern(R"(\{.*?\})");
-  std::vector<std::string> results;
-
-  auto begin = std::sregex_iterator(line.begin(), line.end(), regexPattern);
-  auto end = std::sregex_iterator();
-
-  for (std::sregex_iterator i = begin; i != end; ++i) {
-    results.push_back((*i)[0]);
+  int bracketCount = 0;
+  std::vector<int> startCapture, endCapture;
+  for (int i = 0; i < line.size(); i++) {
+    char c = line[i];
+    if (c == '{') {
+      if (bracketCount == 0) startCapture.push_back(i);
+      bracketCount++;
+    } else if (c == '}') {
+      bracketCount--;
+      if (bracketCount == 0) endCapture.push_back(i + 1);
+    }
   }
-  
+  if (startCapture.size() != endCapture.size() || bracketCount != 0) {
+    std::cerr << "ERROR: Mismatched curly braces in " << line << std::endl;
+  }
+  std::vector<std::string> results;
+  for (int i = 0; i < startCapture.size(); i++) {
+    int captureLength = endCapture[i] - startCapture[i];
+    results.push_back(line.substr(startCapture[i], captureLength));
+  }
   // Remove curly braces
   for (auto& str : results) {
     str.erase(0, 1);
     str.pop_back();
   }
-  
   //std::cout << "Extracted values:" << std::endl;
   //for (const auto& value : results) {
-  //std::cout << value << std::endl;
+  //  std::cout << value << std::endl;
   //}
 
   return results;
 
 }
 
-std::string fileParser::getName(const std::string &name) {
-  // FIXME: Deal with characters that break things ie spaces, curly braces etc.
+std::string fileParser::getName(std::string name) {
+  // this is scuffed and only removes the inputs
+  for (int i = 0; i < name.size(); i++) {
+    if (name[i] == '{') {
+      name = name.substr(0, i);
+    }
+  }
   return name;
 }
 
@@ -308,16 +322,57 @@ std::shared_ptr<token> fileParser::getTokenPtrFromName(const std::string& argNam
   return nullptr;
 }
 
-void fileParser::addComponent(const std::string &line) {
-  std::shared_ptr<componentToken> component = getComponent(line);
+bool fileParser::sourceIsFunction(std::vector<std::string> inputs) {
+  if (inputs[1] == "AC" || inputs[1] == "SQUARE") {
+    return true;
+  }
+  return false;
+}
 
-  std::vector<std::string> inputs = getInputs(line);
-  if (component->componentType != VOLTAGESOURCE && inputs.size() != 2) {
-    // FIXME: When we add opams, bjts, etc this must change
-    std::cerr << "ERROR: Components must have two inputs." << std::endl;
-    std::cerr << "\tEX: COMPONENT{NAME}{VALUE}" << std::endl;
-  } // TODO: Error handling for AC/sqaure wave signals
-  if (component->componentType == VOLTAGESOURCE && inputs[1] == "AC") {
+void fileParser::checkIfComponentIsValid(std::shared_ptr<componentToken> component, std::vector<std::string> inputs) {
+  switch (component->componentType) {
+  case RESISTOR:
+  case CAPACITOR:
+  case INDUCTOR: {
+    if (inputs.size() != 2) {
+      std::cerr << "ERROR: Components must have two inputs." << std::endl;
+      std::cerr << "\tEX: COMPONENT{NAME}{VALUE}" << std::endl;
+    }
+    break;
+  }
+  case VOLTAGESOURCE: {
+    if (sourceIsFunction(inputs)) {
+      if (inputs.size() != 5) {
+        std::cerr << "ERROR: Functional voltage sources must have two inputs." << std::endl;
+        std::cerr << "\tEX: voltage_source{NAME}{TYPE}{AMPLITUDE}{FREQUENCY}{PHASE SHIFT}" << std::endl;
+      }
+    } else if (inputs.size() != 2) {
+      std::cerr << "ERROR: Constant voltage sources must have two inputs." << std::endl;
+      std::cerr << "\tEX: voltage_source{NAME}{VALUE}" << std::endl;
+    }
+    break;
+  }
+  case DIODE: {
+    if (inputs.size() > 3) {
+      std::cerr << "ERROR: Didodes must have one or two inputs." << std::endl;
+      std::cerr << "\tEX: diode{NAME}{OPTIONAL VALUE}" << std::endl;
+    }
+    break;
+  }
+  default: {
+    std::cerr << "ERROR: checkIfComponentIsValid failed" << std::endl;
+    std::cout << "inputs: " << std::endl;
+    for (auto& input : inputs) {
+      std::cout << input << std::endl;
+    }
+    break;
+  }
+  }
+
+}
+
+void fileParser::createVoltageSource(std::shared_ptr<componentToken> component, std::vector<std::string> inputs) {
+  if (inputs[1] == "AC") {
     std::string name = getName(inputs[0]);
     double amplitude = getValue(inputs[2]);
     double frequency = getValue(inputs[3]);
@@ -325,7 +380,7 @@ void fileParser::addComponent(const std::string &line) {
     component->setFunctionType(VoltageSource::AC);
     component->addName(name);
     component->addValues({amplitude, frequency, shift});
-  } else if(component->componentType == VOLTAGESOURCE && inputs[1] == "SQUARE") {
+  } else if (inputs[1] == "SQUARE") {
     std::string name = getName(inputs[0]);
     double amplitude = getValue(inputs[2]);
     double frequency = getValue(inputs[3]);
@@ -340,54 +395,109 @@ void fileParser::addComponent(const std::string &line) {
     component->addName(name);
     component->addValue(value);
   }
+}
+
+void fileParser::createDiode(std::shared_ptr<componentToken> component, std::vector<std::string> inputs) {
+  std::string name = getName(inputs[0]);
+  double value = 0.7;
+  if (inputs.size() == 2) {
+    value = getValue(inputs[1]);
+  }
+  component->setFunctionType(VoltageSource::NONE);
+  component->addName(name);
+  component->addValue(value);
+}
+  
+void fileParser::addComponent(const std::string &line) {
+  std::shared_ptr<componentToken> component = getComponent(line);
+  
+  std::vector<std::string> inputs = getInputs(line);
+  checkIfComponentIsValid(component, inputs);
+  
+  if (component->componentType == VOLTAGESOURCE) {
+    createVoltageSource(component, inputs);
+  } else if (component->componentType == DIODE) {
+    createDiode(component, inputs);
+  } else {
+    std::string name = getName(inputs[0]);
+    double value = getValue(inputs[1]);
+    component->setFunctionType(VoltageSource::NONE);
+    component->addName(name);
+    component->addValue(value);
+  }
+  
   component->voltageDataToken = getData("v_" + component->name);
   component->currentDataToken = getData("i_" + component->name);
   tokens.push_back(component);
 }
 
 void fileParser::addNode(const std::string &line) {
+
   std::shared_ptr<nodeToken> node = getNode(line);
   std::vector<std::string> inputs = getInputs(line);
-  if (inputs.size() == 0) {
+  for (auto& s : inputs) {
+    std::vector<std::string> subInputs = getInputs(line);
+    if (subInputs.size() > 1) {
+      // line: node{e2}{R1}{D1{+}}
+      // inputs: e2 R1 D1{+}
+      // subInputs: +
+    }
+    
+  }
+  if (inputs.size() < 2) {
     std::cerr << "ERROR: Nodes must have N + 1 inputs." << std::endl;
     std::cerr << "\tEX: node{NAME}{COMPONENT_1}{COMPONENT_2}...{COMPONENT_N}" << std::endl;
   }
   std::string nodeName = getName(inputs[0]);
   node->addName(nodeName);
+  
   std::vector<std::string> componentNames(inputs.begin() + 1, inputs.end());
-
+  for (int i = 0; i < componentNames.size(); i++) {
+    componentNames[i] = getName(componentNames[i]);
+  }
 
   for (auto& name : componentNames) {
-    auto it = std::find_if(tokens.begin(), tokens.end(), [&name](const std::shared_ptr<token>& t) {
-      if (t->type == token::COMPONENT) {
-        auto component = dynamic_cast<componentToken*>(t.get());
-        return component && component->name == name;
-      }
-      return false;
-    });
-
-  
-    if (it == tokens.end()) {
+    if (!isVaribleDefined(name)) {
       std::cerr << "ERROR: Component `" << name << "` not defined." << std::endl;
     }
   }
 
-  std::vector<std::shared_ptr<token>> componentTokens;
-  //std::cout << tokens.size() << std::endl;
+  std::vector<std::pair<std::shared_ptr<token>, nodeToken::connectionType>> componentTokens;
+  
   for (auto& token : tokens) {
     if (token->type == token::COMPONENT) {
       auto component = dynamic_cast<componentToken *>(token.get());
       auto itComponent = std::find(componentNames.begin(), componentNames.end(), component->name);
-      auto itDuplicate = std::find(componentTokens.begin(), componentTokens.end(), token);
-      if(itComponent != componentNames.end() && itDuplicate == componentTokens.end()) {
-        componentTokens.push_back(token);
-        //std::cout << nodeName << " contains the component " << componentToken->name << std::endl;
+      //auto itDuplicate = std::find(componentTokens.begin(), componentTokens.end(), token);
+      if(itComponent != componentNames.end()) {// && itDuplicate == componentTokens.end()) {
+        if (component->componentType == DIODE) {
+          for (auto& input : getInputs(line)) {
+            if (getName(input) == component->name) {
+              std::vector<std::string> diodeInputs = getInputs(input);
+              if (diodeInputs.size() != 1) {
+                std::cerr << "ERROR: When applying a diode to a node you must define the connection direction" << std::endl;
+                std::cerr << "\tDIODE_NAME{+ OR -}" << std::endl;
+              }
+              if (diodeInputs[0] == "+") {
+                componentTokens.push_back(std::make_pair(token, nodeToken::DIODE_P));
+              } else if (diodeInputs[0] == "-") {
+                componentTokens.push_back(std::make_pair(token, nodeToken::DIODE_N));
+              } else {
+                std::cerr << "ERROR: When applying a diode to a node you must define the connection direction" << std::endl;
+                std::cerr << "\tDIODE_NAME{+ OR -}" << std::endl;
+              }
+            }
+          }
+        } else {
+          componentTokens.push_back(std::make_pair(token, nodeToken::UNDEFINED));
+        }
+        
       }
     }
   }
 
     
-  node->addComponents(componentTokens);
+  node->components = componentTokens;
   node->voltageDataToken = getData(node->name);
   tokens.push_back(node);
 }
@@ -551,13 +661,17 @@ std::shared_ptr<componentToken> fileParser::getComponent(const std::string &line
   if (line.substr(0, currentSource.size()) == currentSource) {
     return std::make_shared<componentToken>(CURRENTSOURCE);
   }
+  std::string diode = "diode";
+  if (line.substr(0, diode.size()) == diode) {
+    return std::make_shared<componentToken>(DIODE);
+  }
   std::cerr << "ERROR: Component not found" << std::endl;
   return 0;
 }
 
 bool fileParser::tokenIsComponent(std::string token) {
   // FIXME: make this more elegent 
-  return token == "resistor" || token == "capacitor" || token == "voltage_source" || token == "inductor";
+  return token == "resistor" || token == "capacitor" || token == "voltage_source" || token == "inductor" || token == "diode";
 }
 
 bool fileParser::tokenIsNode(std::string token) {

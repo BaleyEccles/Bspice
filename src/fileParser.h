@@ -1,8 +1,8 @@
 #pragma once
 #include <sstream>
 #include <fstream>
-#include <regex>
 #include <memory>
+#include <utility>
 #include "Circuit.h"
 
 
@@ -41,12 +41,19 @@ public:
   
 class nodeToken : public token {
 public:
+  enum connectionType {
+    UNDEFINED = 0,
+    DIODE_P,
+    DIODE_N,
+    BJT_BASE,
+    BJT_COLLECTOR,
+    BJT_EMITTER,
+  };
   nodeToken();
   std::string name;
-  std::vector<std::shared_ptr<token>> components;
+  std::vector<std::pair<std::shared_ptr<token>, nodeToken::connectionType>> components;
   std::shared_ptr<token> voltageDataToken;
   inline void addName(std::string componentName) {name = componentName;};
-  inline void addComponents(std::vector<std::shared_ptr<token>> connectedComponents) {components = connectedComponents;};
 };
 
 class plotToken : public token {
@@ -110,13 +117,17 @@ private:
   
   std::vector<std::string> getInputs(const std::string &line);
   
-  std::string getName(const std::string &name);
+  std::string getName(std::string name);
   double getValue(std::string &value);
   calculateToken::calculateType getCalculateType(std::string input);
   bool isVaribleDefined(std::string varName);
   bool isComponentDefined(std::string cName);
   void verifyCalculateArguments(calculateToken::calculateType type, std::vector<std::string> inputs);
   std::shared_ptr<token> getTokenPtrFromName(const std::string& argName);
+  bool sourceIsFunction(std::vector<std::string> inputs);
+  void checkIfComponentIsValid(std::shared_ptr<componentToken> component, std::vector<std::string> inputs);
+  void createVoltageSource(std::shared_ptr<componentToken> component, std::vector<std::string> inputs);
+  void createDiode(std::shared_ptr<componentToken> component, std::vector<std::string> inputs);
 
   void addComponent(const std::string &line);
   void addNode(const std::string &line);

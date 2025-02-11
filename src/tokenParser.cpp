@@ -234,6 +234,10 @@ std::vector<double> postProcess::calculateCurrent(std::shared_ptr<token> t) {
     return output;
     break;
   }
+  case DIODE: {
+    std::cerr << "TODO: Diodes not done yet" << std::endl;
+    break;
+  }
   default: {
     std::cerr << "ERROR: Component type not handled for calculation" << std::endl;
   }
@@ -297,9 +301,13 @@ std::vector<double> postProcess::calculateVoltage(std::shared_ptr<token> t) {
     return output;
     break;
   }
-
+  case DIODE: {
+    std::cerr << "TODO: Diodes not done yet" << std::endl;
+    break;
+  }
   default: {
     std::cerr << "ERROR: Component type not handled for calculation" << std::endl;
+    break;
   }
   }
   std::cerr << "ERROR: Component type not handled for calculation" << std::endl;
@@ -313,7 +321,7 @@ std::vector<std::shared_ptr<token>> postProcess::getConnectedNodesFromComponentP
     if (t->type == token::NODE) {
       auto nodeT = dynamic_cast<nodeToken *>(t.get());
       for (auto& c : nodeT->components) {
-        auto cToken = dynamic_cast<componentToken *>(c.get());
+        auto cToken = dynamic_cast<componentToken *>(c.first.get());
         if (cToken->name == componentT->name) {
           output.push_back(t);
         }
