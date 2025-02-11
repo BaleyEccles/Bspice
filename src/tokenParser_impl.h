@@ -13,29 +13,31 @@ Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<token>>&
         case ComponentType::VOLTAGESOURCE: {
           std::shared_ptr<Component> c = std::make_shared<VoltageSource>(componentT->name, componentT->fType, componentT->values);
           componentT->circuitComponentPtr = c;
-          node->addComponent(c);
+          node->addComponent(c, component.second);
           break;
         }
         case ComponentType::RESISTOR: {
           auto c = std::make_shared<Resistor>(componentT->name, componentT->values[0]);
           componentT->circuitComponentPtr = c;
-          node->addComponent(c);
+          node->addComponent(c, component.second);
           break;
         }
         case ComponentType::CAPACITOR: {
           auto c = std::make_shared<Capacitor>(componentT->name, componentT->values[0]);
           componentT->circuitComponentPtr = c;
-          node->addComponent(c);
+          node->addComponent(c, component.second);
           break;
         }
         case ComponentType::INDUCTOR: {
           auto c = std::make_shared<Inductor>(componentT->name, componentT->values[0]);
           componentT->circuitComponentPtr = c;
-          node->addComponent(c);
+          node->addComponent(c, component.second);
           break;
         }
         case DIODE: {
-          std::cerr << "TODO: Diodes not done yet" << std::endl;
+          auto c = std::make_shared<Diode>(componentT->name, componentT->values[0]);
+          componentT->circuitComponentPtr = c;
+          node->addComponent(c, component.second);
           break;
         }
         default: {

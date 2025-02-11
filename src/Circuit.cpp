@@ -12,12 +12,15 @@ Capacitor::Capacitor(const std::string &Name, double Value)
 Inductor::Inductor(const std::string &Name, double Value)
     : Component(Name, ComponentType::INDUCTOR), Inductance(Value) {}
 
+Diode::Diode(const std::string &Name, double Value)
+    : Component(Name, ComponentType::DIODE), voltageDrop(Value) {}
+
 VoltageSource::VoltageSource(const std::string& Name, functionType type, std::vector<double> Values)
   : Component(Name, ComponentType::VOLTAGESOURCE), fType(type), Values(Values) {}
 
 Node::Node(const std::string &name) : nodeName(name) {}
 
-void Node::addComponent(std::shared_ptr<Component> component) {
-  components.push_back(component);
+void Node::addComponent(std::shared_ptr<Component> component, connectionType cType) {
+  components.push_back(std::make_pair(component, cType));
 }
 

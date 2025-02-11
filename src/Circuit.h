@@ -5,6 +5,8 @@
 #include <algorithm>
 #include "Bmaths/Bmaths.h"
 
+
+
 enum ComponentType {
   VOLTAGESOURCE = 0,
   CURRENTSOURCE,
@@ -12,6 +14,15 @@ enum ComponentType {
   CAPACITOR,
   INDUCTOR,
   DIODE
+};
+
+enum connectionType {
+  UNDEFINED = 0,
+  DIODE_P,
+  DIODE_N,
+  BJT_BASE,
+  BJT_COLLECTOR,
+  BJT_EMITTER,
 };
 
 class Node;
@@ -43,7 +54,11 @@ class Inductor : public Component {
   double Inductance;
 };
 
-
+class Diode : public Component {
+ public:
+  Diode(const std::string& Name, double Value);
+  double voltageDrop = 0.0;
+};
 
 class VoltageSource : public Component {
  public:
@@ -61,9 +76,9 @@ class VoltageSource : public Component {
 class Node {
  public:
   Node(const std::string& name);
-  void addComponent(std::shared_ptr<Component> component);
+  void addComponent(std::shared_ptr<Component> component, connectionType cType);
   std::string nodeName;
-  std::vector<std::shared_ptr<Component>> components;
+  std::vector<std::pair<std::shared_ptr<Component>, connectionType>> components;
 };
 
 template<typename T1, typename T2, typename T3>

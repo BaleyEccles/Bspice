@@ -399,7 +399,7 @@ void fileParser::createVoltageSource(std::shared_ptr<componentToken> component, 
 
 void fileParser::createDiode(std::shared_ptr<componentToken> component, std::vector<std::string> inputs) {
   std::string name = getName(inputs[0]);
-  double value = 0.7;
+  double value = 0.0;
   if (inputs.size() == 2) {
     value = getValue(inputs[1]);
   }
@@ -462,7 +462,7 @@ void fileParser::addNode(const std::string &line) {
     }
   }
 
-  std::vector<std::pair<std::shared_ptr<token>, nodeToken::connectionType>> componentTokens;
+  std::vector<std::pair<std::shared_ptr<token>, connectionType>> componentTokens;
   
   for (auto& token : tokens) {
     if (token->type == token::COMPONENT) {
@@ -479,9 +479,9 @@ void fileParser::addNode(const std::string &line) {
                 std::cerr << "\tDIODE_NAME{+ OR -}" << std::endl;
               }
               if (diodeInputs[0] == "+") {
-                componentTokens.push_back(std::make_pair(token, nodeToken::DIODE_P));
+                componentTokens.push_back(std::make_pair(token, DIODE_P));
               } else if (diodeInputs[0] == "-") {
-                componentTokens.push_back(std::make_pair(token, nodeToken::DIODE_N));
+                componentTokens.push_back(std::make_pair(token, DIODE_N));
               } else {
                 std::cerr << "ERROR: When applying a diode to a node you must define the connection direction" << std::endl;
                 std::cerr << "\tDIODE_NAME{+ OR -}" << std::endl;
@@ -489,7 +489,7 @@ void fileParser::addNode(const std::string &line) {
             }
           }
         } else {
-          componentTokens.push_back(std::make_pair(token, nodeToken::UNDEFINED));
+          componentTokens.push_back(std::make_pair(token, UNDEFINED));
         }
         
       }

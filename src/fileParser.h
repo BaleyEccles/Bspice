@@ -41,17 +41,10 @@ public:
   
 class nodeToken : public token {
 public:
-  enum connectionType {
-    UNDEFINED = 0,
-    DIODE_P,
-    DIODE_N,
-    BJT_BASE,
-    BJT_COLLECTOR,
-    BJT_EMITTER,
-  };
+
   nodeToken();
   std::string name;
-  std::vector<std::pair<std::shared_ptr<token>, nodeToken::connectionType>> components;
+  std::vector<std::pair<std::shared_ptr<token>, connectionType>> components;
   std::shared_ptr<token> voltageDataToken;
   inline void addName(std::string componentName) {name = componentName;};
 };
