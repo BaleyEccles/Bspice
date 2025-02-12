@@ -30,9 +30,9 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(Differenti
 
     } else if constexpr (std::is_same<T3, function>::value) {
       matrix<double> DEsfEval = DEs.f.evaluate(tn);
-      xn1 = ((DEs.E.invert() * (DEsfEval - (DEs.A * yn))).scale(timeStep) + ynDE);  
+      //auto E2 = DEs.E.scale(0.25);
+      xn1 = ((DEs.E.invert() * (DEsfEval - (DEs.A * yn))).scale(timeStep) + ynDE);
     }
-
 
     auto An = eliminateColsFromIdx(AEs.A, DEColIdx);
 
@@ -57,6 +57,7 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(Differenti
       NewtonGuess.eliminateRow(row - j);
       j++;
     }
+    //newf.print("newf");
     auto AEsols = NewtonsMethod(An, newf, NewtonGuess);
 
     matrix<double> AEsolsNew = {std::vector<std::vector<double>>(

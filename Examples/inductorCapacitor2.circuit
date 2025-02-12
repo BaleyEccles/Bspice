@@ -1,0 +1,15 @@
+voltage_source{Vcc}{5}
+resistor{R1}{1k}
+capacitor{C1}{250u}
+inductor{L1}{1}
+
+node{e1}{Vcc}{R1}
+node{e2}{R1}{L1}{C1}
+node{GND}{L1}{C1}{Vcc}
+
+calculate{VOLTAGE}{V_R1}{R1}
+plot{V_R1}
+calculate{CURRENT}{I_L1}{L1}
+plot{I_L1}
+fourier_transform{f_e2}{e2}
+

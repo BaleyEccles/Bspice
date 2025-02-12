@@ -79,14 +79,13 @@ void Circuit<T1, T2, T3>::generateMatrices() {
         }
         case ComponentType::INDUCTOR: {
           if (c.first->Connections.size() > 2) {
-            std::cerr << "ERROR: Capacitor " << c.first->ComponentName
+            std::cerr << "ERROR: Inductor " << c.first->ComponentName
                       << " has too many connections" << std::endl;
           } else if (c.first->Connections.size() < 2) {
-            std::cerr << "ERROR: Capacitor " << c.first->ComponentName
+            std::cerr << "ERROR: Inductor " << c.first->ComponentName
                       << " has not got enough connections" << std::endl;
           }
-          int currentLocation =
-              findNodeLocationFromSymbol("i_" + c.first->ComponentName);
+          int currentLocation = findNodeLocationFromSymbol("i_" + c.first->ComponentName);
 
           int nodeLocation1 = findNodeLocationFromNode(c.first->Connections[0]);
           int nodeLocation2 = findNodeLocationFromNode(c.first->Connections[1]);
@@ -109,8 +108,8 @@ void Circuit<T1, T2, T3>::generateMatrices() {
             }
           } else {
             if (c.first->Connections[0]->nodeName != "GND") {
-              A.data[currentLocation][nodeLocation1] -= 1;
-              E.data[currentLocation][currentLocation] += inductor->Inductance;
+              A.data[currentLocation][nodeLocation2] -= 1;
+              //E.data[currentLocation][currentLocation] += inductor->Inductance;
             }
           }
           break;
@@ -128,6 +127,10 @@ void Circuit<T1, T2, T3>::generateMatrices() {
             f.data[nodeLocationCurrent][0] = f.data[nodeLocationCurrent][0] + createVoltageFunction(voltageSource->fType, voltageSource->Values);
           }
 
+          break;
+        }
+        case ComponentType::DIODE: {
+          std::cout << "TODO" << std::endl;
           break;
         }
         default: {
