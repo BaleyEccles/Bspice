@@ -1,4 +1,5 @@
 #pragma once
+#include "matrix.h"
 #include <vector>
 #include <iostream>
 #include <ostream>
@@ -6,6 +7,16 @@
 #include <numbers>
 #include <cmath>
 #include <functional>
+#include <algorithm>
+
+struct symbol {
+  std::string name;
+  symbol(const std::string& n);
+  symbol() : name("NULL") {};
+  bool operator==(const symbol& other) const {
+    return other.name == name;
+  }
+};
 
 namespace branchOperation {
   double add(double branch1, double branch2);
@@ -41,8 +52,9 @@ public:
     brachOperation = b;
     functions = std::make_pair(f1, f2);
   };
+  symbol functionSymbol;
+  
   bool isBranch = false;
-
   std::vector<operationPtr> operations;
   std::pair<std::shared_ptr<function>, std::shared_ptr<function>> functions;
   branchPtr brachOperation = nullptr;
@@ -57,6 +69,73 @@ public:
     return f;
   }
 
+};
+
+
+// f(x1, x2, x3, ...)
+class multiVaribleFunction {
+public:
+  function nodeData;
+  bool isBranch = false;
+  branchPtr brachOperation = nullptr;
+  std::pair<std::shared_ptr<multiVaribleFunction>, std::shared_ptr<multiVaribleFunction>> branchEquations;
+
+  double evaluate(std::vector<std::pair<symbol, double>> inputs) {
+    double output = 0.0;
+    if (brachOperation == nullptr && isBranch) {
+      std::cerr << "ERROR: Branch has no operation defined." << std::endl;
+    }
+    if (brachOperation != nullptr && isBranch) {
+      double b1 = branchEquations.first->evaluate(inputs);
+      double b2 = branchEquations.second->evaluate(inputs);
+      double output = brachOperation(b1, b2);
+    } else {
+      for (auto& input : inputs) {
+        if (input.first.name == nodeData.functionSymbol.name) {
+          output = nodeData.evaluate(input.second);
+        }
+      }
+    }
+    return output;
+  };
+
+  double differentiate(symbol varible, std::vector<std::pair<symbol, double>> inputs, double h) {
+    double fx = this->evaluate(inputs);
+    int varIdx = 0;
+    auto inputs_he = inputs;
+    for (int i = 0; i < inputs.size(); i++) {
+      if (inputs[i].first.name == varible.name) {
+        inputs_he[i].second += h;
+      }
+    }
+    double fx_he = this->evaluate(inputs_he);
+    return (fx_he-fx)/h;
+  }
+
+  bool variblesAreKnown = false;
+  std::vector<symbol> varibles;
+  std::vector<symbol> getVaribles() {
+    if (variblesAreKnown) {
+      return varibles;
+    }
+    if (brachOperation == nullptr && isBranch) {
+      std::cerr << "ERROR: Branch has no operation defined." << std::endl;
+    }
+    if (isBranch) {
+      auto b1 = branchEquations.first->getVaribles();
+      auto b2 = branchEquations.second->getVaribles();
+      varibles.insert(varibles.end(), b1.begin(), b1.end());
+      varibles.insert(varibles.end(), b2.begin(), b2.end());
+      std::sort(varibles.begin(), varibles.end());
+      auto last = std::unique(varibles.begin(), varibles.end());
+      varibles.erase(last, varibles.end());
+    } else {
+      varibles.push_back(nodeData.functionSymbol);
+    }
+    variblesAreKnown = true;
+    std::sort(varibles.begin(), varibles.end());
+    return varibles;
+  }
 };
 
 function createConstantFunction(double val);

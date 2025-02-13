@@ -1,5 +1,7 @@
 #include "function.h"
 
+symbol::symbol(const std::string& name) : name(name) {}
+
 double function::evaluate(double t) const {
 
   if (brachOperation == nullptr && isBranch) {

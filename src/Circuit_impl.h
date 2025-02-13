@@ -20,7 +20,7 @@ void Circuit<T1, T2, T3>::calculate() {
 }
 template<typename T1, typename T2, typename T3>
 void Circuit<T1, T2, T3>::generateMatrices() {
-
+  
   int equationNumber = 0;
   for (auto node : nodes) {
     if (node->nodeName != "GND") {
@@ -130,7 +130,7 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           break;
         }
         case ComponentType::DIODE: {
-          std::cout << "TODO" << std::endl;
+          
           break;
         }
         default: {
