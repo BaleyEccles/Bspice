@@ -6,6 +6,9 @@
 
 token::token(tokenType type)
   :type(type) {};
+
+timeToken::timeToken()
+  : token(token::TIME) {};
   
 componentToken::componentToken(ComponentType componentType)
   : token(token::COMPONENT), componentType(componentType) {};
@@ -16,6 +19,7 @@ nodeToken::nodeToken()
 plotToken::plotToken()
   : token(token::PLOT){};
 
+
 fourierToken::fourierToken()
   : token(token::FOURIER){};
 
@@ -24,6 +28,7 @@ calculateToken::calculateToken()
 
 dataToken::dataToken(std::string nameIn)
   : token(token::DATA), name(nameIn){};
+
 
 
 
@@ -47,7 +52,9 @@ std::vector<std::shared_ptr<token>> fileParser::tokenize(const std::string& line
   std::string currentToken;
   for (char c : line) {
     currentToken = currentToken + c;
-    if (tokenIsComponent(currentToken)) {
+    if (tokenIsTime(currentToken)) {
+      addTime(line);
+    } else if (tokenIsComponent(currentToken)) {
       addComponent(line);
     } else if (tokenIsNode(currentToken)) {
       addNode(line);
@@ -322,6 +329,22 @@ std::shared_ptr<token> fileParser::getTokenPtrFromName(const std::string& argNam
   return nullptr;
 }
 
+void fileParser::addTime(const std::string &line) {
+  std::shared_ptr<timeToken> time = getTime(line);
+  std::vector<std::string> inputs = getInputs(line);
+  if (inputs.size() != 2) {
+    std::cerr << "ERROR: time must have two number inputs." << std::endl;
+    std::cerr << "\tEX: time{STOP_TIME}{TIME_STEP}" << std::endl;
+  }
+  time->stopTime = getData("STOP_TIME");
+  time->timeStep = getData("TIME_STEP");
+  auto stopTime = dynamic_cast<dataToken *>(time->stopTime.get());
+  stopTime->addData({getValue(inputs[0])});
+  auto timeStep = dynamic_cast<dataToken *>(time->timeStep.get());
+  timeStep->addData({getValue(inputs[1])});
+  tokens.push_back(time);
+}
+
 bool fileParser::sourceIsFunction(std::vector<std::string> inputs) {
   if (inputs[1] == "AC" || inputs[1] == "SQUARE") {
     return true;
@@ -509,7 +532,6 @@ void fileParser::addPlot(const std::string &line) {
     std::cerr << "ERROR: Plots must have 1 input." << std::endl;
     std::cerr << "\tEX: plot{NODE_NAME}" << std::endl;
   }
-  // FIXME: Verify that toPlot is a valid voltage/current/node etc
   std::string toPlot = getName(inputs[0]);
   plot->addPlot(toPlot);
   plot->dataToken = getData(plot->name);
@@ -554,6 +576,10 @@ void fileParser::addFourier(const std::string &line) {
 
 std::shared_ptr<nodeToken> fileParser::getNode(const std::string &line) {
   return std::make_shared<nodeToken>();
+}
+
+std::shared_ptr<timeToken> fileParser::getTime(const std::string &line) {
+  return std::make_shared<timeToken>();
 }
 
 
@@ -669,6 +695,10 @@ std::shared_ptr<componentToken> fileParser::getComponent(const std::string &line
   return 0;
 }
 
+bool fileParser::tokenIsTime(std::string token) {
+    return token == "time";
+}
+
 bool fileParser::tokenIsComponent(std::string token) {
   // FIXME: make this more elegent 
   return token == "resistor" || token == "capacitor" || token == "voltage_source" || token == "inductor" || token == "diode";
@@ -691,5 +721,8 @@ bool fileParser::tokenIsFourier(std::string token) {
 bool fileParser::tokenIsCalculate(std::string token) {
     return token == "calculate";
 }
+
+
+
 
 

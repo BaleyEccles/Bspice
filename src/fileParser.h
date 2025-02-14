@@ -9,7 +9,8 @@
 class token {
 public:
   enum tokenType {
-    COMPONENT = 0,
+    TIME, 
+    COMPONENT,
     NODE,
     PLOT,
     FOURIER,
@@ -21,6 +22,13 @@ public:
   
   virtual ~token() = default;
   tokenType type;
+};
+
+class timeToken : public token {
+public:
+  timeToken();
+  std::string name = "time token";
+  std::shared_ptr<token> stopTime, timeStep;
 };
 
 class componentToken : public token {
@@ -57,6 +65,7 @@ public:
   inline void addPlot(std::string plotName) {name = plotName;};
 
 };
+
 class fourierToken : public token {
 public:
   fourierToken();
@@ -122,12 +131,14 @@ private:
   void createVoltageSource(std::shared_ptr<componentToken> component, std::vector<std::string> inputs);
   void createDiode(std::shared_ptr<componentToken> component, std::vector<std::string> inputs);
 
+  void addTime(const std::string &line);
   void addComponent(const std::string &line);
   void addNode(const std::string &line);
   void addPlot(const std::string &line);
   void addFourier(const std::string &line);
   void addCalculate(const std::string &line);
-    
+
+  std::shared_ptr<timeToken> getTime(const std::string &line);
   std::shared_ptr<plotToken> getPlot(const std::string &line);
   std::shared_ptr<nodeToken> getNode(const std::string &line);
   std::shared_ptr<fourierToken> getFourier(const std::string &line);
@@ -135,7 +146,7 @@ private:
   std::shared_ptr<calculateToken> getCalculate(const std::string &line);
   std::shared_ptr<dataToken> getData(std::string name);
   
-
+  bool tokenIsTime(std::string token);
   bool tokenIsComponent(std::string token);
   bool tokenIsNode(std::string token);
   bool tokenIsPlot(std::string token);

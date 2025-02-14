@@ -1,3 +1,4 @@
+time{1}{10u}
 voltage_source{Vcc}{5}
 resistor{R1}{1k}
 capacitor{C1}{250u}

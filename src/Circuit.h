@@ -82,7 +82,7 @@ class Node {
 };
 
 template<typename T1, typename T2, typename T3>
-class Circuit {
+class Circuit{
  public:
   Circuit();
   // Main things
@@ -92,7 +92,8 @@ class Circuit {
   std::vector<Node *> nodes;
   std::vector<std::shared_ptr<Component>> components;
 
-  // Data 
+  // Data
+  double stopTime, timeStep;
   std::vector<double> time;
   matrix<T1> A;
   matrix<T2> E;
