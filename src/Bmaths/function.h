@@ -16,6 +16,13 @@ struct symbol {
   bool operator==(const symbol& other) const {
     return other.name == name;
   }
+  bool operator<(const symbol& other) const {
+    return other.name < name;
+  }
+  bool operator>(const symbol& other) const {
+    return other.name > name;
+  }
+  
 };
 
 namespace branchOperation {

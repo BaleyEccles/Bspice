@@ -1,4 +1,5 @@
 #pragma once
+#include "function.h"
 #include "matrix.h"
 template <typename T>
 void matrix<T>::print(const std::string name) const {
@@ -73,7 +74,21 @@ matrix<T> matrix<T>::eliminateCol(int col) {
     cols, rows
   };
 }
-template <typename T>
+
+// For multivarible functions
+template<typename T>
+matrix<double> matrix<T>::evaluate(std::vector<std::pair<symbol, double>> inputs) {
+  matrix<double> output = {std::vector<std::vector<double>>(rows, std::vector<double>(cols, 0.0)), cols, rows};
+  for (int row = 0; row < output.rows; row++) {
+    for (int col = 0; col < output.cols; col++) {
+      output.data[row][col] = data[row][col].evaluate(inputs);
+    }
+  }
+  return output;
+  std::cerr << "ERROR: Unreachable" << std::endl;
+}
+
+template<typename T>
 matrix<double> matrix<T>::evaluate(double t) {
   if constexpr (std::is_arithmetic<T>::value) {
     return &this;

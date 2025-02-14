@@ -1,4 +1,6 @@
+#pragma once
 #include <vector>
+#include "function.h"
 
 template<typename T> 
 std::vector<T> differentiateVector(std::vector<double> time, std::vector<T> data) {
@@ -18,6 +20,8 @@ std::vector<T> differentiateVector(std::vector<double> time, std::vector<T> data
   }
   return output;
 }
+
+
 
 // \int_{0}^{t} f(x) dx
 template<typename T> 

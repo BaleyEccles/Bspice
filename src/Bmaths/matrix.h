@@ -23,6 +23,7 @@ class matrix {
   matrix<T> eliminateRow(int row);
   matrix<T> eliminateCol(int col);
   matrix<double> evaluate(double t);
+  matrix<double> evaluate(std::vector<std::pair<symbol, double>> inputs);
   matrix<T> transpose();
   double norm(double Ln);
   double max();
