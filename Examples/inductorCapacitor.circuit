@@ -1,4 +1,4 @@
-time{1}{10u}
+time{1.5}{1m}
 voltage_source{Vcc}{5}
 resistor{R1}{500}
 resistor{R2}{10}

@@ -14,7 +14,6 @@ endif()
 
 set(CPP_FILES
     src/main.cpp
-    src/Bmaths/Bmaths.cpp
     src/Bmaths/AlgebraicEquationSolver.cpp
     src/Bmaths/DifferentialEquationSolver.cpp
     src/Bmaths/DAESolve.cpp

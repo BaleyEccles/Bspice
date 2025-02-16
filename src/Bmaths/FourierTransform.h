@@ -57,7 +57,7 @@ public:
 
     std::vector<complexNumber<T>> X(N);
     for (int k = 0; k < N / 2; k++) {
-        auto w = makeComplexNumberFromPolar<T>(1.0, -2*std::numbers::pi*k/N);
+        auto w = makeComplexNumberFromPolar<T>(1.0, -2*M_PI*k/N);
         X[k] = even[k] + w*odd[k];
         X[k+N/2] = even[k] - w*odd[k];
         
@@ -82,7 +82,7 @@ public:
     for (int k = 0; k < N/2; k++) {
       for (int n = 0; n < N; n++) {
         auto data = inputData.data[0][n];
-        double angle = -2*std::numbers::pi*k*n/N;
+        double angle = -2*M_PI*k*n/N;
         transformData.data[0][k] += (data*makeComplexNumberFromPolar<double>(1, angle));
       }
       frequency.data[0].push_back(k*fs);

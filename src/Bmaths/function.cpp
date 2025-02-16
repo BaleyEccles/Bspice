@@ -41,11 +41,11 @@ namespace Operation {
   }
 
   operationPtr sin(double A, double frequency, double theta) {
-    return [A, frequency, theta](double t) { return A*std::sin(frequency*2*std::numbers::pi*t + theta); };
+    return [A, frequency, theta](double t) { return A*std::sin(frequency*2*M_PI*t + theta); };
   }
   
   operationPtr cos(double A, double frequency, double theta) {
-    return [A, frequency, theta](double t) { return A*std::cos(frequency*2*std::numbers::pi + theta); };
+    return [A, frequency, theta](double t) { return A*std::cos(frequency*2*M_PI + theta); };
   }
 
   operationPtr scaleToOne() {

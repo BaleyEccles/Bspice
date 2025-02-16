@@ -6,9 +6,9 @@ Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<token>>&
     if (token->type == token::TIME) {
       auto time = dynamic_cast<timeToken *>(token.get());
       auto stopTime = dynamic_cast<dataToken *>(time->stopTime.get());
-      circuit.stopTime = stopTime->data[0];
+      circuit.stopTime = stopTime->data[0][0];
       auto timeStep = dynamic_cast<dataToken *>(time->timeStep.get());
-      circuit.timeStep = timeStep->data[0];
+      circuit.timeStep = timeStep->data[0][0];
     }
     if (token->type == token::NODE) {
       auto nodeT = dynamic_cast<nodeToken *>(token.get());

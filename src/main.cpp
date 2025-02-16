@@ -8,7 +8,7 @@
 
 
 int main() {
-  fileParser parsedFile("../Examples/diode.circuit");
+  fileParser parsedFile("../Examples/inductorCapacitor.circuit");
   auto tokens = parsedFile.tokens;
   Circuit<double, double, function> circuit = createCircuitFromTokens<double, double, function>(tokens);
   circuit.calculate();
@@ -20,7 +20,7 @@ int main() {
   double stopTime = circuit.stopTime;
   double timeStep = circuit.timeStep;
   DifferentialAlgebraicEquation<double, double, function> DAE = {A, E, f, s};
-  auto output = DAESolve2(DAE, initalValues, timeStep, endTime);
+  auto output = DAESolve2(DAE, initalValues, timeStep, stopTime);
   postProcess("plotData.m", output.first, output.second, s, tokens);
   
   return 0;

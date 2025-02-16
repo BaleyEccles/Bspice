@@ -10,3 +10,4 @@ struct AlgebraicEquation {
 };
 
 matrix<double> NewtonsMethod(matrix<double> A, matrix<double> f, matrix<double> guess);
+

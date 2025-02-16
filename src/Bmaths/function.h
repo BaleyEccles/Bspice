@@ -5,7 +5,7 @@
 #include <ostream>
 #include <memory>
 #include <numbers>
-#include <cmath>
+#include <math.h>
 #include <functional>
 #include <algorithm>
 
@@ -157,9 +157,9 @@ namespace Operation {
   
   operationPtr divide(double arg);
 
-  operationPtr sin(double A = 1.0, double frequency = 1/(2*std::numbers::pi), double theta = 0);
+  operationPtr sin(double A = 1.0, double frequency = 1/(2*M_PI), double theta = 0);
   
-  operationPtr cos(double A = 1.0, double frequency = 1/(2*std::numbers::pi), double theta = 0);
+  operationPtr cos(double A = 1.0, double frequency = 1/(2*M_PI), double theta = 0);
   
   operationPtr scaleToOne();
   // TODO: add more functions

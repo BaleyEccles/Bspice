@@ -16,8 +16,3 @@
 #include "calculus.h"
 
 
-
-
-
-
-

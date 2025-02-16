@@ -1,9 +1,13 @@
-time{1}{10u}
+time{5}{1m}
 voltage_source{Vcc}{AC}{5}{1}{0}
 resistor{R1}{10k}
 capacitor{C1}{10u}
 node{e1}{Vcc}{R1}
 node{e2}{R1}{C1}
 node{GND}{C1}
+
+calculate{VOLTAGE}{V_C1}{C1}
+plot{V_C1}
+
 plot{e1}
 plot{e2}

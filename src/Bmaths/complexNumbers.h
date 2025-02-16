@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <iostream>
 
 template<typename T>
 class complexNumber {
@@ -92,4 +93,3 @@ complexNumber<T> makeComplexNumberFromPolar(double r, double phi) {
   return complexNumber<T>(r*cos(phi), r*sin(phi));
 }
 
-#include "complexNumbers_impl.h"

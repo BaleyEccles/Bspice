@@ -62,6 +62,7 @@ void postProcess::fillInDataTokens() {
     }
     case token::CALCULATE:
     case token::FOURIER:
+    case token::TIME:
     case token::DATA: {
       break;
     }
@@ -126,12 +127,12 @@ void postProcess::createOctavePlotFileFromTokens() {
       //for (auto i : dataT->data[0]) {
       //  std::cout << i << " ";
       //}
-      addPlot(plotT->name, dataT->data[0]);
+      addPlot(plotT->plotVaribleName, dataT->data[0]);
       if (dataT->data[0].size() == time.size()) {
         isValidPlot = true;
       }
       if (!isValidPlot) {
-        std::cerr << "ERROR: `" << plotT->name << "` was not able to be plotted." << std::endl;
+        std::cerr << "ERROR: `" << plotT->plotVaribleName << "` was not able to be plotted." << std::endl;
       }
 
     } else if (token->type == token::FOURIER) {
@@ -153,7 +154,7 @@ void postProcess::createOctavePlotFileFromTokens() {
 
     } else if (token->type == token::CALCULATE) {
       auto calcT = dynamic_cast<calculateToken *>(token.get());
-      switch (calcT->cType) {
+      switch (calcT->calculationType) {
       case calculateToken::VOLTAGE: {
         calcT->addData(calculateVoltage(calcT->args[0]));
         break;
