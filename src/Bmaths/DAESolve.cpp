@@ -2,13 +2,11 @@
 
 
 // Solve a DAE of the form Ax + Ex' = f
-std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve(matrix<double> A, matrix<double> E,
-                                                                     matrix<double> f,
-                                                                     matrix<double> initalGuess,
-                                                                     double timeStep, double timeEnd) {
+std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve(matrix<double> A, matrix<double> E, matrix<double> f, matrix<double> initalGuess, double timeStep, double timeEnd) {
   std::vector<matrix<double>> results;
   std::vector<double> time;
   int steps = ceil(timeEnd/timeStep);
+  results.reserve(steps);
   for (int i = 0; i < steps; i++) {
     double tn = i * timeStep - timeStep;
     matrix<double> yn;

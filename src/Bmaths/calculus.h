@@ -28,19 +28,19 @@ template<typename T>
 std::vector<T> integrateVectorWithTime(std::vector<double> time, std::vector<T> data) {
   std::vector<T> output(data.size());
   for (int i = 0; i < data.size(); i++) {
-    double f_i = 0;
+    double fi = 0;
     for (int j = 1; j < i - 1; j++) {
-      f_i += data[j];
+      fi += data[j];
     }
     if (i == 0) {
       double h = time[i + 1] - time[i];
-      output[i] = (h/2)*(data[0] + 2*f_i + data[i]) ;
+      output[i] = (h/2)*(data[0] + 2*fi + data[i]) ;
     } else if (i == data.size() - 1) {
       double h = time[i] - time[i - 1];
-      output[i] = (h/2)*(data[0] + 2*f_i + data[i]) ;
+      output[i] = (h/2)*(data[0] + 2*fi + data[i]) ;
     } else {
       double h = time[i] - time[i - 1];
-      output[i] = (h/2)*(data[0] + 2*f_i + data[i]) ;
+      output[i] = (h/2)*(data[0] + 2*fi + data[i]) ;
     }
   }
   return output;

@@ -64,10 +64,10 @@ public:
   }
 
   complexNumber<T>& operator*=(const complexNumber<T>& other) {
-    T new_a = this->a * other.a - this->b * other.b;
-    T new_b = this->a * other.b + this->b * other.a;
-    this->a = new_a;
-    this->b = new_b;
+    T aNew = this->a * other.a - this->b * other.b;
+    T bNew = this->a * other.b + this->b * other.a;
+    this->a = aNew;
+    this->b = bNew;
     return *this;
   }
 

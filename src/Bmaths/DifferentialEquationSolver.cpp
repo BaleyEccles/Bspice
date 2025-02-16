@@ -2,7 +2,7 @@
 
 matrix<double> EulersMethod(matrix<double> E, matrix<double> A,
                             matrix<double> f, matrix<double> yn, double h) {
-  matrix<double> Einv = E.pseudoInvert();
+  matrix<double> Einv = E.invert();
   std::vector<std::vector<double>> d_yn_dtData;
   std::vector<std::vector<double>> yn1Data;
   auto EinvMulA = Einv * A;

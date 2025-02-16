@@ -30,7 +30,6 @@ class matrix {
   double norm(double Ln);
   double max();
   
-  matrix<T> pseudoInvert();
   matrix<T> invert();
   template<typename U>
   matrix<T> operator*(const matrix<U>& other);
@@ -78,6 +77,7 @@ matrix<T> matrix<T>::scale(double scale) {
 template <typename T>
 matrix<T> matrix<T>::getColumn(int col) {
   std::vector<std::vector<T>> output;
+  output.reserve(rows);
   for (int i = 0; i < rows; i++) {
     output.push_back({data[i][col]});
   }
@@ -87,6 +87,7 @@ matrix<T> matrix<T>::getColumn(int col) {
 template <typename T>
 matrix<T> matrix<T>::getRow(int row) {
   std::vector<std::vector<T>> output;
+  output.reserve(cols);
   for (int i = 0; i < cols; i++) {
     output.push_back({data[row][i]});
   }
@@ -97,10 +98,7 @@ template <typename T>
 matrix<T> matrix<T>::eliminateRow(int row) {
   data.erase(data.begin() + row);
   rows -= 1;
-  return matrix<T> {
-    data,
-    cols, rows
-  };
+  return *this;
 }
 template <typename T>
 matrix<T> matrix<T>::eliminateCol(int col) {
@@ -108,10 +106,7 @@ matrix<T> matrix<T>::eliminateCol(int col) {
     data[row].erase(data[row].begin() + col);
   }
   cols -= 1;
-  return matrix<T> {
-    data,
-    cols, rows
-  };
+  return *this;
 }
 
 // For multivarible functions
@@ -171,6 +166,7 @@ double matrix<T>::norm(double Ln) {
   norm = std::pow(norm, 1/Ln);
   return norm;
 };
+
 template <typename T>
 double matrix<T>::max() {
   double max = 0.0;
@@ -183,45 +179,26 @@ double matrix<T>::max() {
   }
   return max;
 }
-template <typename T>
-matrix<T> matrix<T>::pseudoInvert() { //FIXME: This is wrong but works for now
-  std::vector<std::vector<T>> outputData(rows, std::vector<T>(cols, 0));
 
-  for (int row = 0; row < rows; ++row) {
-    for (int col = 0; col < cols; ++col) {
-      if (data[row][col] != 0) {
-        outputData[row][col] = 1 / data[row][col];
-      } else {
-        outputData[row][col] = 0;
-      }
-    }
-  }
-  matrix<T> output = {
-    outputData,
-    cols, rows
-  };
-  return output;
-};
 template <typename T>
 matrix<T> matrix<T>::invert() {
-    int n = rows;
-    std::vector<std::vector<double>> inverse = std::vector<std::vector<double>>(n, std::vector<double>(n, 0));
-    std::vector<std::vector<double>> augmented(n, std::vector<double>(2 * n, 0));
+  std::vector<std::vector<double>> inverse = std::vector<std::vector<double>>(rows, std::vector<double>(rows, 0));
+    std::vector<std::vector<double>> augmented(rows, std::vector<double>(2 * rows, 0));
 
     // Create the augmented matrix [input | I]
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++) {
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < rows; j++) {
         augmented[i][j] = data[i][j];
       }
-      augmented[i][i + n] = 1; // Identity matrix
+      augmented[i][i + rows] = 1; // Identity matrix
     }
 
     // Apply Gaussian elimination
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < rows; i++) {
       // Search for maximum in this column
       double maxEl = abs(augmented[i][i]);
       int maxRow = i;
-      for (int k = i + 1; k < n; k++) {
+      for (int k = i + 1; k < rows; k++) {
         if (abs(augmented[k][i]) > maxEl) {
           maxEl = abs(augmented[k][i]);
           maxRow = k;
@@ -229,7 +206,7 @@ matrix<T> matrix<T>::invert() {
       }
 
       // Swap maximum row with current row
-      for (int k = i; k < 2 * n; k++) {
+      for (int k = i; k < 2 * rows; k++) {
         std::swap(augmented[maxRow][k], augmented[i][k]);
       }
 
@@ -239,15 +216,15 @@ matrix<T> matrix<T>::invert() {
         print();
         std::cerr << "ERROR: matrix is singular" << std::endl;
       }
-      for (int k = 0; k < 2 * n; k++) {
+      for (int k = 0; k < 2 * rows; k++) {
         augmented[i][k] /= diag;
       }
 
       // Make the other rows contain 0s in this column
-      for (int k = 0; k < n; k++) {
+      for (int k = 0; k < rows; k++) {
         if (k != i) {
           double factor = augmented[k][i];
-          for (int j = 0; j < 2 * n; j++) {
+          for (int j = 0; j < 2 * rows; j++) {
             augmented[k][j] -= factor * augmented[i][j];
           }
         }
@@ -255,9 +232,9 @@ matrix<T> matrix<T>::invert() {
     }
 
     // Extract the inverse matrix from the augmented matrix
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++) {
-        inverse[i][j] = augmented[i][j + n];
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < rows; j++) {
+        inverse[i][j] = augmented[i][j + rows];
       }
     }
     matrix<T> inv = {inverse, cols, rows};

@@ -31,7 +31,7 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(Differenti
   std::vector<matrix<double>> results;
   std::vector<double> time;
   int steps = ceil(timeEnd/timeStep);
-
+  results.reserve(steps);
   auto DEIdx = getDifferentailEquationIdxFromDAE(DAE);
   auto DEColIdx = getDEColIdx(DAE.E);
   auto DEs = getDifferentailEquationsFromDAE(DAE);

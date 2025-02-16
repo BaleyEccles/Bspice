@@ -57,9 +57,9 @@ public:
 
     std::vector<complexNumber<T>> X(N);
     for (int k = 0; k < N / 2; k++) {
-        auto w = makeComplexNumberFromPolar<T>(1.0, -2*M_PI*k/N);
-        X[k] = even[k] + w*odd[k];
-        X[k+N/2] = even[k] - w*odd[k];
+      auto w = makeComplexNumberFromPolar<T>(1.0, -2*M_PI*k/N);
+      X[k] = even[k] + w*odd[k];
+      X[k+N/2] = even[k] - w*odd[k];
         
     }
 
