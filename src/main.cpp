@@ -7,7 +7,7 @@
 
 
 int main() {
-  fileParser parsedFile("../Examples/capacitor.circuit");
+  fileParser parsedFile("../Examples/opamp.circuit");
   auto tokens = parsedFile.tokens;
   Circuit<double, double, function> circuit = createCircuitFromTokens<double, double, function>(tokens);
   circuit.calculate();

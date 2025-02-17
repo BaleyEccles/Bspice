@@ -11,11 +11,15 @@ enum ComponentType {
   RESISTOR,
   CAPACITOR,
   INDUCTOR,
+  OPAMP,
   DIODE
 };
 
 enum connectionType {
   UNDEFINED = 0,
+  OPAMP_N,
+  OPAMP_P,
+  OPAMP_OUT,
   DIODE_P,
   DIODE_N,
   BJT_BASE,
@@ -50,6 +54,11 @@ class Inductor : public Component {
  public:
   Inductor(const std::string& Name, double Value);
   double Inductance;
+};
+
+class Opamp : public Component {
+ public:
+  Opamp(const std::string& Name);
 };
 
 class Diode : public Component {
@@ -243,11 +252,34 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           }  else if constexpr (std::is_same<T3, function>::value) {
             f.data[nodeLocationCurrent][0] = f.data[nodeLocationCurrent][0] + createVoltageFunction(voltageSource->fType, voltageSource->Values);
           }
+          break;
+        }
+        case ComponentType::OPAMP: {
+          // using:
+          // I_- = I_+ = 0A
+          // Vout = A * (V_+ - V_-)
+          
+          int nodeLocationCurrentP = findNodeLocationFromSymbol("i_" + c.first->ComponentName + "P");
+          int nodeLocationCurrentN = findNodeLocationFromSymbol("i_" + c.first->ComponentName + "N");
+          A.data[nodeLocationCurrentP][nodeLocationCurrentP] = 1;
+          A.data[nodeLocationCurrentN][nodeLocationCurrentN] = 1;
 
+          int nodeLocationVN = findNodeLocationFromNode(c.first->Connections[0]);
+          int nodeLocationVP = findNodeLocationFromNode(c.first->Connections[1]);
+          int nodeLocationVout = findNodeLocationFromNode(c.first->Connections[2]);
+
+          auto opamp = dynamic_cast<Opamp *>(c.first.get());
+          auto amp = 100e3; // FIXME: This should be user controlled
+          int nodeLocationCurrentVout = findNodeLocationFromSymbol("i_" + c.first->ComponentName + "N");
+          if (equationNumber == 2) { // FIXME: This will only  work for this specific circuit
+            A.data[equationNumber][nodeLocationVP] = -amp;
+            A.data[equationNumber][nodeLocationVN] = amp;
+            A.data[equationNumber][nodeLocationVout] = 1;
+          }
           break;
         }
         case ComponentType::DIODE: {
-          
+          std::cerr << "ERROR: Diodes not done yet" << std::endl;
           break;
         }
         default: {
@@ -339,17 +371,11 @@ template<typename T1, typename T2, typename T3>
 void Circuit<T1, T2, T3>::generateSymbols() {
   bool hasGround = false;
   for (auto node : nodes) {
-
-    // if (node->nodeName != "GND") {
     syms.data.push_back({symbol(node->nodeName)});
-    //}
-    if (node->nodeName == "GND")
-      hasGround = true;
+    if (node->nodeName == "GND") hasGround = true;
   }
   if (hasGround == false) {
-    std::cerr << "ERROR: Circuit has no ground connection, please define a "
-                 "node with the name \"GND\""
-              << std::endl;
+    std::cerr << "ERROR: Circuit has no ground connection, please define a node with the name \"GND\"" << std::endl;
   }
   syms.rows = syms.data.size();
   syms.cols = 1;
@@ -358,13 +384,27 @@ void Circuit<T1, T2, T3>::generateSymbols() {
       if (c.first->Type == ComponentType::VOLTAGESOURCE || c.first->Type == ComponentType::INDUCTOR) {
         symbol componetCurrent = symbol("i_" + c.first->ComponentName);
         auto symsTransposed = syms.transpose();
-        auto it = std::find(symsTransposed.data[0].begin(),
-                            symsTransposed.data[0].end(), componetCurrent);
+        auto it = std::find(symsTransposed.data[0].begin(), symsTransposed.data[0].end(), componetCurrent);
 
         if (it == symsTransposed.data[0].end()) {
           syms.data.push_back({componetCurrent});
           syms.rows++;
         }
+      } else if (c.first->Type == ComponentType::OPAMP) {
+        symbol componetCurrentP = symbol("i_" + c.first->ComponentName + "P");
+        symbol componetCurrentN = symbol("i_" + c.first->ComponentName + "N");
+        auto symsTransposed = syms.transpose();
+        auto it1 = std::find(symsTransposed.data[0].begin(), symsTransposed.data[0].end(), componetCurrentP);
+        if (it1 == symsTransposed.data[0].end()) {
+          syms.data.push_back({componetCurrentP});
+          syms.rows++;
+        }
+        auto it2 = std::find(symsTransposed.data[0].begin(), symsTransposed.data[0].end(), componetCurrentN);
+        if (it2 == symsTransposed.data[0].end()) {
+          syms.data.push_back({componetCurrentN});
+          syms.rows++;
+        }
+        
       }
     }
   }

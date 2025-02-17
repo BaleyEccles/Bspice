@@ -12,6 +12,9 @@ Capacitor::Capacitor(const std::string &Name, double Value)
 Inductor::Inductor(const std::string &Name, double Value)
     : Component(Name, ComponentType::INDUCTOR), Inductance(Value) {}
 
+Opamp::Opamp(const std::string &Name)
+    : Component(Name, ComponentType::OPAMP) {}
+
 Diode::Diode(const std::string &Name, double Value)
     : Component(Name, ComponentType::DIODE), voltageDrop(Value) {}
 

@@ -345,7 +345,7 @@ std::shared_ptr<token> fileParser::getTokenPtrFromName(const std::string& argNam
 
   }
   //std::cerr << "ERROR: Unable to find token, this should be unreachable" << std::endl;
-  //std::cerr << "\tToken name is:" << argName << std::endl;
+  //std::cerr << "Token name is:" << argName << std::endl;
   return nullptr;
 }
 
@@ -354,7 +354,7 @@ void fileParser::addTime(const std::string &line) {
   std::vector<std::string> inputs = getInputs(line);
   if (inputs.size() != 2) {
     std::cerr << "ERROR: time must have two number inputs." << std::endl;
-    std::cerr << "\tEX: time{STOP_TIME}{TIME_STEP}" << std::endl;
+    std::cerr << "EX: time{STOP_TIME}{TIME_STEP}" << std::endl;
   }
   time->stopTime = getData("STOP_TIME");
   time->timeStep = getData("TIME_STEP");
@@ -379,7 +379,7 @@ void fileParser::checkIfComponentIsValid(std::shared_ptr<componentToken> compone
   case INDUCTOR: {
     if (inputs.size() != 2) {
       std::cerr << "ERROR: Components must have two inputs." << std::endl;
-      std::cerr << "\tEX: COMPONENT{NAME}{VALUE}" << std::endl;
+      std::cerr << "EX: COMPONENT{NAME}{VALUE}" << std::endl;
     }
     break;
   }
@@ -387,18 +387,25 @@ void fileParser::checkIfComponentIsValid(std::shared_ptr<componentToken> compone
     if (sourceIsFunction(inputs)) {
       if (inputs.size() != 5) {
         std::cerr << "ERROR: Functional voltage sources must have two inputs." << std::endl;
-        std::cerr << "\tEX: voltage_source{NAME}{TYPE}{AMPLITUDE}{FREQUENCY}{PHASE SHIFT}" << std::endl;
+        std::cerr << "EX: voltage_source{NAME}{TYPE}{AMPLITUDE}{FREQUENCY}{PHASE SHIFT}" << std::endl;
       }
     } else if (inputs.size() != 2) {
       std::cerr << "ERROR: Constant voltage sources must have two inputs." << std::endl;
-      std::cerr << "\tEX: voltage_source{NAME}{VALUE}" << std::endl;
+      std::cerr << "EX: voltage_source{NAME}{VALUE}" << std::endl;
+    }
+    break;
+  }
+  case OPAMP: {
+    if (inputs.size() != 1) {
+      std::cerr << "ERROR: Op-amps must have one inputs." << std::endl;
+      std::cerr << "EX: opamp{NAME}" << std::endl;
     }
     break;
   }
   case DIODE: {
     if (inputs.size() > 3) {
       std::cerr << "ERROR: Didodes must have one or two inputs." << std::endl;
-      std::cerr << "\tEX: diode{NAME}{OPTIONAL VALUE}" << std::endl;
+      std::cerr << "EX: diode{NAME}{OPTIONAL VALUE}" << std::endl;
     }
     break;
   }
@@ -461,6 +468,10 @@ void fileParser::addComponent(const std::string &line) {
     createVoltageSource(component, inputs);
   } else if (component->componentType == DIODE) {
     createDiode(component, inputs);
+  } else if (component->componentType == OPAMP) {
+    std::string name = getName(inputs[0]);
+    component->fType = VoltageSource::NONE;
+    component->name = name;
   } else {
     std::string name = getName(inputs[0]);
     double value = getValue(inputs[1]);
@@ -483,7 +494,7 @@ void fileParser::addNode(const std::string &line) {
   }
   if (inputs.size() < 2) {
     std::cerr << "ERROR: Nodes must have N + 1 inputs." << std::endl;
-    std::cerr << "\tEX: node{NAME}{COMPONENT_1}{COMPONENT_2}...{COMPONENT_N}" << std::endl;
+    std::cerr << "EX: node{NAME}{COMPONENT_1}{COMPONENT_2}...{COMPONENT_N}" << std::endl;
   }
   std::string nodeName = getName(inputs[0]);
   node->name = nodeName;
@@ -513,7 +524,7 @@ void fileParser::addNode(const std::string &line) {
               std::vector<std::string> diodeInputs = getInputs(input);
               if (diodeInputs.size() != 1) {
                 std::cerr << "ERROR: When applying a diode to a node you must define the connection direction" << std::endl;
-                std::cerr << "\tDIODE_NAME{+ OR -}" << std::endl;
+                std::cerr << "DIODE_NAME{+ OR -}" << std::endl;
               }
               if (diodeInputs[0] == "+") {
                 componentTokens.push_back(std::make_pair(token, DIODE_P));
@@ -521,18 +532,36 @@ void fileParser::addNode(const std::string &line) {
                 componentTokens.push_back(std::make_pair(token, DIODE_N));
               } else {
                 std::cerr << "ERROR: When applying a diode to a node you must define the connection direction" << std::endl;
-                std::cerr << "\tDIODE_NAME{+ OR -}" << std::endl;
+                std::cerr << "DIODE_NAME{+ OR -}" << std::endl;
+              }
+            }
+          }
+        } if (component->componentType == OPAMP) {
+          for (auto& input : getInputs(line)) {
+            if (getName(input) == component->name) {
+              std::vector<std::string> opampInputs = getInputs(input);
+              if (opampInputs.size() != 1) {
+                std::cerr << "ERROR: When applying a opamp to a node you must define the connection direction" << std::endl;
+                std::cerr << "OPAMP_NAME{+ OR - OR out}" << std::endl;
+              }
+              if (opampInputs[0] == "+") {
+                componentTokens.push_back(std::make_pair(token, OPAMP_P));
+              } else if (opampInputs[0] == "-") {
+                componentTokens.push_back(std::make_pair(token, OPAMP_N));
+              } else if (opampInputs[0] == "out") {
+                componentTokens.push_back(std::make_pair(token, OPAMP_OUT));
+              } else {
+                std::cerr << "ERROR: When applying a opamp to a node you must define the connection direction" << std::endl;
+                std::cerr << "OPAMP_NAME{+ OR - OR out}" << std::endl;
               }
             }
           }
         } else {
           componentTokens.push_back(std::make_pair(token, UNDEFINED));
         }
-        
       }
     }
   }
-
     
   node->components = componentTokens;
   node->voltageDataToken = getData(node->name);
@@ -544,7 +573,7 @@ void fileParser::addPlot(const std::string &line) {
   std::vector<std::string> inputs = getInputs(line);
   if (inputs.size() != 1) {
     std::cerr << "ERROR: Plots must have 1 input." << std::endl;
-    std::cerr << "\tEX: plot{VARIBLE_NAME}" << std::endl;
+    std::cerr << "EX: plot{VARIBLE_NAME}" << std::endl;
   }
   
   std::string varibleName = getName(inputs[0]);
@@ -584,7 +613,7 @@ void fileParser::addFourier(const std::string &line) {
   std::vector<std::string> inputs = getInputs(line);
   if (inputs.size() != 2) {
     std::cerr << "ERROR: fourier transforms must have 2 input." << std::endl;
-    std::cerr << "\tEX: fourier_transform{VARIBLE_NAME}{TRANSFORM_VARIBLE}" << std::endl;
+    std::cerr << "EX: fourier_transform{VARIBLE_NAME}{TRANSFORM_VARIBLE}" << std::endl;
   }
   std::string inputVaribleName = getName(inputs[0]);
   std::string varibleToTransformName = getName(inputs[1]);
@@ -723,6 +752,10 @@ std::shared_ptr<componentToken> fileParser::getComponent(const std::string &line
   if (line.substr(0, currentSource.size()) == currentSource) {
     return std::make_shared<componentToken>(CURRENTSOURCE);
   }
+  std::string opamp = "opamp";
+  if (line.substr(0, opamp.size()) == opamp) {
+    return std::make_shared<componentToken>(OPAMP);
+  }
   std::string diode = "diode";
   if (line.substr(0, diode.size()) == diode) {
     return std::make_shared<componentToken>(DIODE);
@@ -736,7 +769,7 @@ bool fileParser::tokenIsTime(std::string token) {
 }
 
 bool fileParser::tokenIsComponent(std::string token) {
-  return token == "resistor" || token == "capacitor" || token == "voltage_source" || token == "inductor" || token == "diode";
+  return token == "resistor" || token == "capacitor" || token == "voltage_source" || token == "inductor" || token == "opamp" || token == "diode";
 }
 
 bool fileParser::tokenIsNode(std::string token) {
