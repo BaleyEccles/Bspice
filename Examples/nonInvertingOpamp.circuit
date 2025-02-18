@@ -1,0 +1,12 @@
+time{1}{1m}
+voltage_source{Vcc}{AC}{5}{5}{0}
+opamp{A}
+resistor{Rf}{500}
+resistor{R1}{100}
+node{Vin}{Vcc}{A{+}}
+node{e2}{R1}{Rf}{A{-}}
+node{Vout}{Rf}{A{out}}
+node{GND}{R1}
+plot{Vin}
+plot{Vout}
+

@@ -302,6 +302,23 @@ std::vector<double> postProcess::calculateVoltage(std::shared_ptr<token> t) {
     return output;
     break;
   }
+  case VOLTAGESOURCE: {
+    std::vector<std::shared_ptr<token>> connectedNodes = getConnectedNodesFromComponentPtr(t);
+    if (connectedNodes.size() != 2) {
+      std::cerr << "ERROR: Voltage calculation failed, too many or not enough nodes." << std::endl;
+    }
+    auto v1 = getDataFromToken(connectedNodes[0]);
+    auto v2 = getDataFromToken(connectedNodes[1]);
+    if (v1.size() != v2.size()) {
+      std::cerr << "ERROR: For some reason voltages have different sizes?" << std::endl;
+    }
+    std::vector<double> output(v1.size(), 0.0);
+    for (int i = 0; i < v1.size(); i++) {
+      output[i] = v1[i] - v2[i];
+    }
+    return output;
+    break;
+  }
   case DIODE: {
     std::cerr << "TODO: Diodes not done yet" << std::endl;
     break;

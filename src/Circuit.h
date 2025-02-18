@@ -218,7 +218,6 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           int nodeLocation2 = findNodeLocationFromNode(c.first->Connections[1]);
           auto inductor = dynamic_cast<Inductor *>(c.first.get());
 
-          // Unsure how right this is, but it works for the simple case
           if (node == c.first->Connections[0]) {
             if (c.first->Connections[0]->nodeName != "GND") {
               A.data[equationNumber][currentLocation] += 1;
@@ -263,18 +262,39 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           int nodeLocationCurrentN = findNodeLocationFromSymbol("i_" + c.first->ComponentName + "N");
           A.data[nodeLocationCurrentP][nodeLocationCurrentP] = 1;
           A.data[nodeLocationCurrentN][nodeLocationCurrentN] = 1;
-
-          int nodeLocationVN = findNodeLocationFromNode(c.first->Connections[0]);
-          int nodeLocationVP = findNodeLocationFromNode(c.first->Connections[1]);
-          int nodeLocationVout = findNodeLocationFromNode(c.first->Connections[2]);
-
+          
           auto opamp = dynamic_cast<Opamp *>(c.first.get());
           auto amp = 100e3; // FIXME: This should be user controlled
-          int nodeLocationCurrentVout = findNodeLocationFromSymbol("i_" + c.first->ComponentName + "N");
-          if (equationNumber == 2) { // FIXME: This will only  work for this specific circuit
-            A.data[equationNumber][nodeLocationVP] = -amp;
-            A.data[equationNumber][nodeLocationVN] = amp;
-            A.data[equationNumber][nodeLocationVout] = 1;
+          //int nodeLocationCurrentVout = findNodeLocationFromSymbol("i_" + c.first->ComponentName + "N");
+          int nodeLocationVout = -1;
+          for (auto& n : findNodeFromComponent(c.first)) {
+            for (auto& com : n->components) {
+              if (com.second == OPAMP_OUT && c.first->ComponentName == com.first->ComponentName) {
+                nodeLocationVout = findNodeLocationFromNode(n);
+              }
+            }
+          }
+
+          switch (c.second) {
+          case OPAMP_P: {
+            int pos = findNodeLocationFromNode(node);
+            A.data[nodeLocationVout][pos] = -amp;
+            break;
+          }
+          case OPAMP_N: {
+            int pos = findNodeLocationFromNode(node);
+            A.data[nodeLocationVout][pos] = amp;
+            break;
+          }
+          case OPAMP_OUT:{
+            int pos = findNodeLocationFromNode(node);
+            A.data[nodeLocationVout][pos] = 1;
+            break;
+          }
+          default: {
+            std::cerr << "ERROR: Opamp contains the wrong connection type." << std::endl;
+            break;
+          }
           }
           break;
         }
@@ -404,7 +424,7 @@ void Circuit<T1, T2, T3>::generateSymbols() {
           syms.data.push_back({componetCurrentN});
           syms.rows++;
         }
-        
+
       }
     }
   }
