@@ -3,10 +3,12 @@ voltage_source{Vcc}{5}
 resistor{R1}{10k}
 capacitor{C1}{10u}
 capacitor{C2}{10u}
+
 node{e1}{Vcc}{R1}
 node{e2}{R1}{C1}
 node{e3}{C1}{C2}
 node{GND}{C2}
+
 calculate{CURRENT}{I_C1}{C1}
 calculate{VOLTAGE}{V_C1}{C1}
 calculate{CURRENT}{I_C2}{C2}
