@@ -1,4 +1,4 @@
-#include "Circuit.h"
+#include "circuit.h"
 #include "fileParser.h"
 #include "tokenParser.h"
 #include <cstdio>

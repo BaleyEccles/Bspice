@@ -14,11 +14,11 @@ endif()
 
 set(CPP_FILES
     src/main.cpp
-    src/Bmaths/AlgebraicEquationSolver.cpp
-    src/Bmaths/DifferentialEquationSolver.cpp
-    src/Bmaths/DAESolve.cpp
-    src/Bmaths/function.cpp
-    src/Circuit.cpp
+    src/BMaths/algebraicEquationSolver.cpp
+    src/BMaths/differentialEquationSolver.cpp
+    src/BMaths/DAESolve.cpp
+    src/BMaths/function.cpp
+    src/component.cpp
     src/fileParser.cpp
     src/tokenParser.cpp
 )

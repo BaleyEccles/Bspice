@@ -1,4 +1,4 @@
-#include "AlgebraicEquationSolver.h"
+#include "algebraicEquationSolver.h"
 // solve matrix equtations of the form A x = f
 matrix<double> NewtonsMethod(matrix<double> A, matrix<double> f,
                              matrix<double> guess) {

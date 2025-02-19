@@ -3,92 +3,8 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include "Bmaths/Bmaths.h"
-
-enum ComponentType {
-  VOLTAGESOURCE = 0,
-  CURRENTSOURCE,
-  RESISTOR,
-  CAPACITOR,
-  INDUCTOR,
-  OPAMP,
-  DIODE
-};
-
-enum connectionType {
-  UNDEFINED = 0,
-  OPAMP_N,
-  OPAMP_P,
-  OPAMP_OUT,
-  DIODE_P,
-  DIODE_N,
-  BJT_BASE,
-  BJT_COLLECTOR,
-  BJT_EMITTER,
-};
-
-class Node;
-class Component {
-public:
-  Component(const std::string& name, ComponentType Type);
-  virtual ~Component() = default;
-  std::string ComponentName;
-  ComponentType Type;
-  std::vector<Node*> Connections;
-  
-};
-
-class Resistor : public Component {
-public:
-  Resistor(const std::string& Name, double Value);
-  double Resistance;
-};
-
-class Capacitor : public Component {
-public:
-  Capacitor(const std::string& Name, double Value);
-  double Capacitance;
-};
-
-class Inductor : public Component {
-public:
-  Inductor(const std::string& Name, double Value);
-  double Inductance;
-};
-
-class Opamp : public Component {
-public:
-  Opamp(const std::string& Name);
-};
-
-class Diode : public Component {
-public:
-  Diode(const std::string& Name, double Value);
-  double voltageDrop = 0.0;
-};
-
-class VoltageSource : public Component {
-public:
-  enum functionType {
-    NONE,
-    AC,
-    SQUARE_WAVE
-  };
-  
-  VoltageSource(const std::string& Name, functionType type, std::vector<double> Values);
-  std::vector<double> Values;
-  functionType fType;
-};
-
-class Node {
-public:
-  Node(const std::string& name);
-  void addComponent(std::shared_ptr<Component> component, connectionType cType);
-  std::string nodeName;
-  std::vector<std::pair<std::shared_ptr<Component>, connectionType>> components;
-};
-
-// Templated definitions // 
+#include "BMaths/BMaths.h"
+#include "component.h"
 
 template<typename T1, typename T2, typename T3>
 class Circuit{
@@ -157,7 +73,7 @@ void Circuit<T1, T2, T3>::generateMatrices() {
     } else {
       for (auto c : node->components) {
         switch (c.first->Type) {
-        case ComponentType::RESISTOR: {
+        case Component::ComponentType::RESISTOR: {
           if (c.first->Connections.size() > 2) {
             std::cerr << "ERROR: Resistor " << c.first->ComponentName << " has too many connections" << std::endl;
           } else if (c.first->Connections.size() < 2) {
@@ -177,7 +93,7 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           }
           break;
         }
-        case ComponentType::CAPACITOR: {
+        case Component::ComponentType::CAPACITOR: {
           if (c.first->Connections.size() > 2) {
             std::cerr << "ERROR: Capacitor " << c.first->ComponentName << " has too many connections" << std::endl;
           } else if (c.first->Connections.size() < 2) {
@@ -205,7 +121,7 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           }
           break;
         }
-        case ComponentType::INDUCTOR: {
+        case Component::ComponentType::INDUCTOR: {
           if (c.first->Connections.size() > 2) {
             std::cerr << "ERROR: Inductor " << c.first->ComponentName << " has too many connections" << std::endl;
           } else if (c.first->Connections.size() < 2) {
@@ -238,7 +154,7 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           }
           break;
         }
-        case ComponentType::VOLTAGESOURCE: {
+        case Component::ComponentType::VOLTAGESOURCE: {
           int componentConnectionIdx1 = findNodeLocationFromNode(c.first->Connections[0]);
           int componentCurrentIdx = findNodeLocationFromSymbol("i_" + c.first->ComponentName);
           auto voltageSource = dynamic_cast<VoltageSource *>(c.first.get());
@@ -251,7 +167,7 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           }
           break;
         }
-        case ComponentType::OPAMP: {
+        case Component::ComponentType::OPAMP: {
           // using:
           // I_- = I_+ = 0A
           // Vout = A * (V_+ - V_-)
@@ -266,24 +182,24 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           int nodeLocationVout = -1;
           for (auto& n : findNodeFromComponent(c.first)) {
             for (auto& com : n->components) {
-              if (com.second == OPAMP_OUT && c.first->ComponentName == com.first->ComponentName) {
+              if (com.second == Component::OPAMP_OUT && c.first->ComponentName == com.first->ComponentName) {
                 nodeLocationVout = findNodeLocationFromNode(n);
               }
             }
           }
 
           switch (c.second) {
-          case OPAMP_P: {
+          case Component::OPAMP_P: {
             int pos = findNodeLocationFromNode(node);
             A.data[nodeLocationVout][pos] = -amp;
             break;
           }
-          case OPAMP_N: {
+          case Component::OPAMP_N: {
             int pos = findNodeLocationFromNode(node);
             A.data[nodeLocationVout][pos] = amp;
             break;
           }
-          case OPAMP_OUT:{
+          case Component::OPAMP_OUT:{
             int pos = findNodeLocationFromNode(node);
             A.data[nodeLocationVout][pos] = 1;
             break;
@@ -295,7 +211,7 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           }
           break;
         }
-        case ComponentType::DIODE: {
+        case Component::ComponentType::DIODE: {
           std::cerr << "ERROR: Diodes not done yet" << std::endl;
           break;
         }
@@ -394,14 +310,14 @@ void Circuit<T1, T2, T3>::generateSymbols() {
 
   for (auto node : nodes) {
     for (auto c : node->components) {
-      if (c.first->Type == ComponentType::VOLTAGESOURCE || c.first->Type == ComponentType::INDUCTOR) {
+      if (c.first->Type == Component::ComponentType::VOLTAGESOURCE || c.first->Type == Component::ComponentType::INDUCTOR) {
         symbol componetCurrent = symbol("i_" + c.first->ComponentName);
         
         if (!isInSymbols(componetCurrent)) {
           syms.data.push_back({componetCurrent});
           syms.rows++;
         }
-      } else if (c.first->Type == ComponentType::OPAMP) {
+      } else if (c.first->Type == Component::ComponentType::OPAMP) {
         symbol componetCurrentP = symbol("i_" + c.first->ComponentName + "P");
         symbol componetCurrentN = symbol("i_" + c.first->ComponentName + "N");
         

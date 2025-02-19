@@ -1,6 +1,6 @@
 #pragma once
-#include "Circuit.h"
-#include "Bmaths/FourierTransform.h"
+#include "circuit.h"
+#include "BMaths/fourierTransform.h"
 #include "fileParser.h"
 #include <memory>
 #include <string>
@@ -61,37 +61,37 @@ Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<token>>&
       for (auto& component : nodeT->components) {
         auto componentT = dynamic_cast<componentToken *>(component.first.get());
         switch(componentT->componentType){
-        case VOLTAGESOURCE: {
+        case Component::VOLTAGESOURCE: {
           std::shared_ptr<Component> c = std::make_shared<VoltageSource>(componentT->name, componentT->fType, componentT->values);
           componentT->circuitComponentPtr = c;
           node->addComponent(c, component.second);
           break;
         }
-        case RESISTOR: {
+        case Component::RESISTOR: {
           auto c = std::make_shared<Resistor>(componentT->name, componentT->values[0]);
           componentT->circuitComponentPtr = c;
           node->addComponent(c, component.second);
           break;
         }
-        case CAPACITOR: {
+        case Component::CAPACITOR: {
           auto c = std::make_shared<Capacitor>(componentT->name, componentT->values[0]);
           componentT->circuitComponentPtr = c;
           node->addComponent(c, component.second);
           break;
         }
-        case INDUCTOR: {
+        case Component::INDUCTOR: {
           auto c = std::make_shared<Inductor>(componentT->name, componentT->values[0]);
           componentT->circuitComponentPtr = c;
           node->addComponent(c, component.second);
           break;
         }
-        case OPAMP: {
+        case Component::OPAMP: {
           auto c = std::make_shared<Opamp>(componentT->name);
           componentT->circuitComponentPtr = c;
           node->addComponent(c, component.second);
           break;
         }
-        case DIODE: {
+        case Component::DIODE: {
           auto c = std::make_shared<Diode>(componentT->name, componentT->values[0]);
           componentT->circuitComponentPtr = c;
           node->addComponent(c, component.second);

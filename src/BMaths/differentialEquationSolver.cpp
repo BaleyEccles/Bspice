@@ -1,4 +1,4 @@
-#include "DifferentialEquationSolver.h"
+#include "differentialEquationSolver.h"
 
 matrix<double> EulersMethod(matrix<double> E, matrix<double> A,
                             matrix<double> f, matrix<double> yn, double h) {

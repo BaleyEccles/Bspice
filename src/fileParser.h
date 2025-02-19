@@ -3,7 +3,7 @@
 #include <fstream>
 #include <memory>
 #include <utility>
-#include "Circuit.h"
+#include "circuit.h"
 
 
 class token {
@@ -33,10 +33,10 @@ public:
 
 class componentToken : public token {
 public:
-  componentToken(ComponentType componentType);
+  componentToken(Component::ComponentType componentType);
   std::string name;
   std::vector<double> values;
-  ComponentType componentType;
+  Component::ComponentType componentType;
   VoltageSource::functionType fType; // For functions ie. AC, square wave etc
   std::shared_ptr<token> voltageDataToken, currentDataToken;
   std::shared_ptr<Component> circuitComponentPtr;
@@ -50,7 +50,7 @@ public:
 
   nodeToken();
   std::string name;
-  std::vector<std::pair<std::shared_ptr<token>, connectionType>> components;
+  std::vector<std::pair<std::shared_ptr<token>, Component::connectionType>> components;
   std::shared_ptr<token> voltageDataToken;
 };
 

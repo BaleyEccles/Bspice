@@ -1,8 +1,6 @@
 #include "fileParser.h"
-#include "Circuit.h"
-
-
-
+#include "circuit.h"
+#include "component.h"
 
 token::token(tokenType type)
   :type(type) {};
@@ -10,7 +8,7 @@ token::token(tokenType type)
 timeToken::timeToken()
   : token(token::TIME) {};
   
-componentToken::componentToken(ComponentType componentType)
+componentToken::componentToken(Component::ComponentType componentType)
   : token(token::COMPONENT), componentType(componentType) {};
 
 nodeToken::nodeToken()
@@ -28,8 +26,6 @@ calculateToken::calculateToken()
 
 dataToken::dataToken(std::string nameIn)
   : token(token::DATA), name(nameIn){};
-
-
 
 
 fileParser::fileParser(const std::string& filename) {
@@ -374,16 +370,16 @@ bool fileParser::sourceIsFunction(std::vector<std::string> inputs) {
 
 void fileParser::checkIfComponentIsValid(std::shared_ptr<componentToken> component, std::vector<std::string> inputs) {
   switch (component->componentType) {
-  case RESISTOR:
-  case CAPACITOR:
-  case INDUCTOR: {
+  case Component::RESISTOR:
+  case Component::CAPACITOR:
+  case Component::INDUCTOR: {
     if (inputs.size() != 2) {
       std::cerr << "ERROR: Components must have two inputs." << std::endl;
       std::cerr << "EX: COMPONENT{NAME}{VALUE}" << std::endl;
     }
     break;
   }
-  case VOLTAGESOURCE: {
+  case Component::VOLTAGESOURCE: {
     if (sourceIsFunction(inputs)) {
       if (inputs.size() != 5) {
         std::cerr << "ERROR: Functional voltage sources must have two inputs." << std::endl;
@@ -395,14 +391,14 @@ void fileParser::checkIfComponentIsValid(std::shared_ptr<componentToken> compone
     }
     break;
   }
-  case OPAMP: {
+  case Component::OPAMP: {
     if (inputs.size() != 1) {
       std::cerr << "ERROR: Op-amps must have one inputs." << std::endl;
       std::cerr << "EX: opamp{NAME}" << std::endl;
     }
     break;
   }
-  case DIODE: {
+  case Component::DIODE: {
     if (inputs.size() > 3) {
       std::cerr << "ERROR: Didodes must have one or two inputs." << std::endl;
       std::cerr << "EX: diode{NAME}{OPTIONAL VALUE}" << std::endl;
@@ -464,11 +460,11 @@ void fileParser::addComponent(const std::string &line) {
   std::vector<std::string> inputs = getInputs(line);
   checkIfComponentIsValid(component, inputs);
   
-  if (component->componentType == VOLTAGESOURCE) {
+  if (component->componentType == Component::VOLTAGESOURCE) {
     createVoltageSource(component, inputs);
-  } else if (component->componentType == DIODE) {
+  } else if (component->componentType == Component::DIODE) {
     createDiode(component, inputs);
-  } else if (component->componentType == OPAMP) {
+  } else if (component->componentType == Component::OPAMP) {
     std::string name = getName(inputs[0]);
     component->fType = VoltageSource::NONE;
     component->name = name;
@@ -510,7 +506,7 @@ void fileParser::addNode(const std::string &line) {
     }
   }
 
-  std::vector<std::pair<std::shared_ptr<token>, connectionType>> componentTokens;
+  std::vector<std::pair<std::shared_ptr<token>, Component::connectionType>> componentTokens;
   
   for (auto& token : tokens) {
     if (token->type == token::COMPONENT) {
@@ -518,7 +514,7 @@ void fileParser::addNode(const std::string &line) {
       auto itComponent = std::find(componentNames.begin(), componentNames.end(), component->name);
       //auto itDuplicate = std::find(componentTokens.begin(), componentTokens.end(), token);
       if(itComponent != componentNames.end()) {// && itDuplicate == componentTokens.end()) {
-        if (component->componentType == DIODE) {
+        if (component->componentType == Component::DIODE) {
           for (auto& input : getInputs(line)) {
             if (getName(input) == component->name) {
               std::vector<std::string> diodeInputs = getInputs(input);
@@ -527,16 +523,16 @@ void fileParser::addNode(const std::string &line) {
                 std::cerr << "DIODE_NAME{+ OR -}" << std::endl;
               }
               if (diodeInputs[0] == "+") {
-                componentTokens.push_back(std::make_pair(token, DIODE_P));
+                componentTokens.push_back(std::make_pair(token, Component::DIODE_P));
               } else if (diodeInputs[0] == "-") {
-                componentTokens.push_back(std::make_pair(token, DIODE_N));
+                componentTokens.push_back(std::make_pair(token, Component::DIODE_N));
               } else {
                 std::cerr << "ERROR: When applying a diode to a node you must define the connection direction" << std::endl;
                 std::cerr << "DIODE_NAME{+ OR -}" << std::endl;
               }
             }
           }
-        } if (component->componentType == OPAMP) {
+        } if (component->componentType == Component::OPAMP) {
           for (auto& input : getInputs(line)) {
             if (getName(input) == component->name) {
               std::vector<std::string> opampInputs = getInputs(input);
@@ -545,11 +541,11 @@ void fileParser::addNode(const std::string &line) {
                 std::cerr << "OPAMP_NAME{+ OR - OR out}" << std::endl;
               }
               if (opampInputs[0] == "+") {
-                componentTokens.push_back(std::make_pair(token, OPAMP_P));
+                componentTokens.push_back(std::make_pair(token, Component::OPAMP_P));
               } else if (opampInputs[0] == "-") {
-                componentTokens.push_back(std::make_pair(token, OPAMP_N));
+                componentTokens.push_back(std::make_pair(token, Component::OPAMP_N));
               } else if (opampInputs[0] == "out") {
-                componentTokens.push_back(std::make_pair(token, OPAMP_OUT));
+                componentTokens.push_back(std::make_pair(token, Component::OPAMP_OUT));
               } else {
                 std::cerr << "ERROR: When applying a opamp to a node you must define the connection direction" << std::endl;
                 std::cerr << "OPAMP_NAME{+ OR - OR out}" << std::endl;
@@ -557,7 +553,7 @@ void fileParser::addNode(const std::string &line) {
             }
           }
         } else {
-          componentTokens.push_back(std::make_pair(token, UNDEFINED));
+          componentTokens.push_back(std::make_pair(token, Component::UNDEFINED));
         }
       }
     }
@@ -733,32 +729,32 @@ std::shared_ptr<dataToken> fileParser::getData(std::string name) {
 std::shared_ptr<componentToken> fileParser::getComponent(const std::string &line) {
   std::string resistor = "resistor";
   if (line.substr(0, resistor.size()) == resistor) {
-    return std::make_shared<componentToken>(RESISTOR);
+    return std::make_shared<componentToken>(Component::RESISTOR);
   }
   std::string capacitor = "capacitor";
   if (line.substr(0, capacitor.size()) == capacitor) {
-    return std::make_shared<componentToken>(CAPACITOR);
+    return std::make_shared<componentToken>(Component::CAPACITOR);
   }
   std::string inductor = "inductor";
   if (line.substr(0, inductor.size()) == inductor) {
-    return std::make_shared<componentToken>(INDUCTOR);
+    return std::make_shared<componentToken>(Component::INDUCTOR);
   }
   std::string voltageSource = "voltage_source";
   if (line.substr(0, voltageSource.size()) == voltageSource) {
     auto inputs = getInputs(line);
-    return std::make_shared<componentToken>(VOLTAGESOURCE);
+    return std::make_shared<componentToken>(Component::VOLTAGESOURCE);
   }
   std::string currentSource = "current_source";
   if (line.substr(0, currentSource.size()) == currentSource) {
-    return std::make_shared<componentToken>(CURRENTSOURCE);
+    return std::make_shared<componentToken>(Component::CURRENTSOURCE);
   }
   std::string opamp = "opamp";
   if (line.substr(0, opamp.size()) == opamp) {
-    return std::make_shared<componentToken>(OPAMP);
+    return std::make_shared<componentToken>(Component::OPAMP);
   }
   std::string diode = "diode";
   if (line.substr(0, diode.size()) == diode) {
-    return std::make_shared<componentToken>(DIODE);
+    return std::make_shared<componentToken>(Component::DIODE);
   }
   std::cerr << "ERROR: Component not found" << std::endl;
   return 0;
