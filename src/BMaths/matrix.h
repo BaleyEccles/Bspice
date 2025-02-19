@@ -17,9 +17,10 @@ class matrix {
  public:
   std::vector<std::vector<T>> data;
   int cols, rows;
+  void createData();  
   void print(const std::string name = "") const;
+  
   matrix<T> scale(double scale);
-
   matrix<T> getColumn(int col);
   matrix<T> getRow(int row);
   matrix<T> eliminateRow(int row);
@@ -29,8 +30,8 @@ class matrix {
   matrix<T> transpose();
   double norm(double Ln);
   double max();
-  
   matrix<T> invert();
+  
   template<typename U>
   matrix<T> operator*(const matrix<U>& other);
   matrix<T> operator+(const matrix<T>& other);
@@ -38,6 +39,22 @@ class matrix {
 };
 
 
+template <typename T>
+void matrix<T>::createData() {
+  if constexpr (std::is_arithmetic<T>::value) {
+    data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, 0));
+    
+  } else if constexpr (std::is_same<T, symbol>::value) {
+    data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, symbol("")));
+    
+  } else if constexpr (std::is_same<T, function>::value) {
+    function f0 = createConstantFunction(0.0);
+    data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, f0));
+    
+  } else if constexpr (std::is_same<T, complexNumber<double>>::value) {
+    data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, complexNumber<double>(0.0, 0.0)));
+  }
+}
 
 template <typename T>
 void matrix<T>::print(const std::string name) const {

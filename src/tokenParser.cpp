@@ -1,5 +1,5 @@
 #include "tokenParser.h"
-#include "Circuit.h"
+#include "circuit.h"
 #include "fileParser.h"
 #include <memory>
 
@@ -185,7 +185,7 @@ void postProcess::createOctavePlotFileFromTokens() {
 std::vector<double> postProcess::calculateCurrent(std::shared_ptr<token> t) {
   auto componentT = dynamic_cast<componentToken *>(t.get());
   switch (componentT->componentType) {
-  case RESISTOR: { // use I = V/R
+  case Component::RESISTOR: { // use I = V/R
     std::vector<std::shared_ptr<token>> connectedNodes = getConnectedNodesFromComponentPtr(t);
     if (connectedNodes.size() != 2) {
       std::cerr << "ERROR: Current calculation failed, too many or not enough nodes." << std::endl;
@@ -200,7 +200,7 @@ std::vector<double> postProcess::calculateCurrent(std::shared_ptr<token> t) {
     return output;
     break;
   }
-  case CAPACITOR: { // use I = C*dV/dt
+  case Component::CAPACITOR: { // use I = C*dV/dt
     std::vector<std::shared_ptr<token>> connectedNodes = getConnectedNodesFromComponentPtr(t);
     if (connectedNodes.size() != 2) {
       std::cerr << "ERROR: Current calculation failed, too many or not enough nodes." << std::endl;
@@ -217,7 +217,7 @@ std::vector<double> postProcess::calculateCurrent(std::shared_ptr<token> t) {
     return output;
     break;
   }
-  case INDUCTOR: { // use V = L*dI/dt => I = I(0) + \int_{0}^{t] V(t)/L dt
+  case Component::INDUCTOR: { // use V = L*dI/dt => I = I(0) + \int_{0}^{t] V(t)/L dt
     std::vector<std::shared_ptr<token>> connectedNodes = getConnectedNodesFromComponentPtr(t);
     if (connectedNodes.size() != 2) {
       std::cerr << "ERROR: Current calculation failed, too many or not enough nodes." << std::endl;
@@ -235,7 +235,7 @@ std::vector<double> postProcess::calculateCurrent(std::shared_ptr<token> t) {
     return output;
     break;
   }
-  case DIODE: {
+  case Component::DIODE: {
     std::cerr << "TODO: Diodes not done yet" << std::endl;
     break;
   }
@@ -283,9 +283,9 @@ std::vector<double> postProcess::calculateAdd(std::shared_ptr<token> t1, std::sh
 std::vector<double> postProcess::calculateVoltage(std::shared_ptr<token> t) {
   auto componentT = dynamic_cast<componentToken *>(t.get());
   switch (componentT->componentType) {
-  case INDUCTOR:
-  case CAPACITOR:
-  case RESISTOR: { // use V = node1 - node2
+  case Component::INDUCTOR:
+  case Component::CAPACITOR:
+  case Component::RESISTOR: { // use V = node1 - node2
     std::vector<std::shared_ptr<token>> connectedNodes = getConnectedNodesFromComponentPtr(t);
     if (connectedNodes.size() != 2) {
       std::cerr << "ERROR: Voltage calculation failed, too many or not enough nodes." << std::endl;
@@ -302,7 +302,7 @@ std::vector<double> postProcess::calculateVoltage(std::shared_ptr<token> t) {
     return output;
     break;
   }
-  case VOLTAGESOURCE: {
+  case Component::VOLTAGESOURCE: {
     std::vector<std::shared_ptr<token>> connectedNodes = getConnectedNodesFromComponentPtr(t);
     if (connectedNodes.size() != 2) {
       std::cerr << "ERROR: Voltage calculation failed, too many or not enough nodes." << std::endl;
@@ -319,7 +319,7 @@ std::vector<double> postProcess::calculateVoltage(std::shared_ptr<token> t) {
     return output;
     break;
   }
-  case DIODE: {
+  case Component::DIODE: {
     std::cerr << "TODO: Diodes not done yet" << std::endl;
     break;
   }

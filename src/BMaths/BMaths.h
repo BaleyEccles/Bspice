@@ -10,9 +10,9 @@
 #include "matrix.h"
 #include "function.h"
 #include "DAESolve.h"
-#include "AlgebraicEquationSolver.h"
+#include "algebraicEquationSolver.h"
 #include "complexNumbers.h"
-#include "FourierTransform.h"
+#include "fourierTransform.h"
 #include "calculus.h"
 
 

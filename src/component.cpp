@@ -1,4 +1,4 @@
-#include "Circuit.h"
+#include "component.h"
 
 Component::Component(const std::string &Name, ComponentType Type)
     : ComponentName(Name), Type(Type) {}
@@ -23,7 +23,7 @@ VoltageSource::VoltageSource(const std::string& Name, functionType type, std::ve
 
 Node::Node(const std::string &name) : nodeName(name) {}
 
-void Node::addComponent(std::shared_ptr<Component> component, connectionType cType) {
+void Node::addComponent(std::shared_ptr<Component> component, Component::connectionType cType) {
   components.push_back(std::make_pair(component, cType));
 }
 

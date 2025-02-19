@@ -3,96 +3,12 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include "Bmaths/Bmaths.h"
-
-enum ComponentType {
-  VOLTAGESOURCE = 0,
-  CURRENTSOURCE,
-  RESISTOR,
-  CAPACITOR,
-  INDUCTOR,
-  OPAMP,
-  DIODE
-};
-
-enum connectionType {
-  UNDEFINED = 0,
-  OPAMP_N,
-  OPAMP_P,
-  OPAMP_OUT,
-  DIODE_P,
-  DIODE_N,
-  BJT_BASE,
-  BJT_COLLECTOR,
-  BJT_EMITTER,
-};
-
-class Node;
-class Component {
- public:
-  Component(const std::string& name, ComponentType Type);
-  virtual ~Component() = default;
-  std::string ComponentName;
-  ComponentType Type;
-  std::vector<Node*> Connections;
-  
-};
-
-class Resistor : public Component {
- public:
-  Resistor(const std::string& Name, double Value);
-  double Resistance;
-};
-
-class Capacitor : public Component {
- public:
-  Capacitor(const std::string& Name, double Value);
-  double Capacitance;
-};
-
-class Inductor : public Component {
- public:
-  Inductor(const std::string& Name, double Value);
-  double Inductance;
-};
-
-class Opamp : public Component {
- public:
-  Opamp(const std::string& Name);
-};
-
-class Diode : public Component {
- public:
-  Diode(const std::string& Name, double Value);
-  double voltageDrop = 0.0;
-};
-
-class VoltageSource : public Component {
- public:
-  enum functionType {
-    NONE,
-    AC,
-    SQUARE_WAVE
-  };
-  
-  VoltageSource(const std::string& Name, functionType type, std::vector<double> Values);
-  std::vector<double> Values;
-  functionType fType;
-};
-
-class Node {
- public:
-  Node(const std::string& name);
-  void addComponent(std::shared_ptr<Component> component, connectionType cType);
-  std::string nodeName;
-  std::vector<std::pair<std::shared_ptr<Component>, connectionType>> components;
-};
-
-// Templated definitions // 
+#include "BMaths/BMaths.h"
+#include "component.h"
 
 template<typename T1, typename T2, typename T3>
 class Circuit{
- public:
+public:
   Circuit();
   // Main things
   void addNode(Node *node);
@@ -121,6 +37,7 @@ private:
   int findNodeLocationFromSymbol(std::string symName);
   void generateComponentConections();
   int findEquationLocationFromSymbol(std::string s);
+  bool isInSymbols(symbol sym);
 
   function createVoltageFunction(VoltageSource::functionType& type, std::vector<double>& values);
 
@@ -150,39 +67,39 @@ void Circuit<T1, T2, T3>::generateMatrices() {
   
   int equationNumber = 0;
   for (auto node : nodes) {
-    if (node->nodeName != "GND") {
+    if (node->nodeName == "GND") {
+      int GNDLocation = findNodeLocationFromNode(node); // node == GND
+      A.data[equationNumber][GNDLocation] = 1;
+    } else {
       for (auto c : node->components) {
         switch (c.first->Type) {
-        case ComponentType::RESISTOR: {
+        case Component::ComponentType::RESISTOR: {
           if (c.first->Connections.size() > 2) {
-            std::cerr << "ERROR: Resistor " << c.first->ComponentName
-                      << " has too many connections" << std::endl;
+            std::cerr << "ERROR: Resistor " << c.first->ComponentName << " has too many connections" << std::endl;
           } else if (c.first->Connections.size() < 2) {
-            std::cerr << "ERROR: Resistor " << c.first->ComponentName
-                      << " has not got enough connections" << std::endl;
+            std::cerr << "ERROR: Resistor " << c.first->ComponentName << " has not got enough connections" << std::endl;
           }
+          
           int componentConnectionIdx1 = findNodeLocationFromNode(c.first->Connections[0]);
           int componentConnectionIdx2 = findNodeLocationFromNode(c.first->Connections[1]);
           auto resistor = dynamic_cast<Resistor *>(c.first.get());
 
           if (node == c.first->Connections[0]) {
             A.data[equationNumber][componentConnectionIdx1] += 1 / resistor->Resistance;
-            A.data[equationNumber][componentConnectionIdx2] += -1 / resistor->Resistance;
+            A.data[equationNumber][componentConnectionIdx2] -= 1 / resistor->Resistance;
           } else {
             A.data[equationNumber][componentConnectionIdx1] -= 1 / resistor->Resistance;
-            A.data[equationNumber][componentConnectionIdx2] -= -1 / resistor->Resistance;
+            A.data[equationNumber][componentConnectionIdx2] += 1 / resistor->Resistance;
           }
-
           break;
         }
-        case ComponentType::CAPACITOR: {
+        case Component::ComponentType::CAPACITOR: {
           if (c.first->Connections.size() > 2) {
-            std::cerr << "ERROR: Capacitor " << c.first->ComponentName
-                      << " has too many connections" << std::endl;
+            std::cerr << "ERROR: Capacitor " << c.first->ComponentName << " has too many connections" << std::endl;
           } else if (c.first->Connections.size() < 2) {
-            std::cerr << "ERROR: Capacitor " << c.first->ComponentName
-                      << " has not got enough connections" << std::endl;
+            std::cerr << "ERROR: Capacitor " << c.first->ComponentName << " has not got enough connections" << std::endl;
           }
+          
           int componentConnectionIdx1 = findNodeLocationFromNode(c.first->Connections[0]);
           int componentConnectionIdx2 = findNodeLocationFromNode(c.first->Connections[1]);
           auto capacitor = dynamic_cast<Capacitor *>(c.first.get());
@@ -204,43 +121,40 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           }
           break;
         }
-        case ComponentType::INDUCTOR: {
+        case Component::ComponentType::INDUCTOR: {
           if (c.first->Connections.size() > 2) {
-            std::cerr << "ERROR: Inductor " << c.first->ComponentName
-                      << " has too many connections" << std::endl;
+            std::cerr << "ERROR: Inductor " << c.first->ComponentName << " has too many connections" << std::endl;
           } else if (c.first->Connections.size() < 2) {
-            std::cerr << "ERROR: Inductor " << c.first->ComponentName
-                      << " has not got enough connections" << std::endl;
+            std::cerr << "ERROR: Inductor " << c.first->ComponentName << " has not got enough connections" << std::endl;
           }
-          int currentLocation = findNodeLocationFromSymbol("i_" + c.first->ComponentName);
-
+          
+          int componentCurrentIdx = findNodeLocationFromSymbol("i_" + c.first->ComponentName);
           int componentConnectionIdx1 = findNodeLocationFromNode(c.first->Connections[0]);
           int componentConnectionIdx2 = findNodeLocationFromNode(c.first->Connections[1]);
           auto inductor = dynamic_cast<Inductor *>(c.first.get());
 
           if (node == c.first->Connections[0]) {
             if (c.first->Connections[0]->nodeName != "GND") {
-              A.data[equationNumber][currentLocation] += 1;
+              A.data[equationNumber][componentCurrentIdx] += 1;
             }
           } else {
             if (c.first->Connections[0]->nodeName != "GND") {
-              A.data[equationNumber][currentLocation] -= 1;
+              A.data[equationNumber][componentCurrentIdx] -= 1;
             }
           }
           if (node == c.first->Connections[0]) {
             if (c.first->Connections[0]->nodeName != "GND") {
-              A.data[currentLocation][componentConnectionIdx1] += 1;
-              E.data[currentLocation][currentLocation] -= inductor->Inductance;
+              A.data[componentCurrentIdx][componentConnectionIdx1] += 1;
+              E.data[componentCurrentIdx][componentCurrentIdx] -= inductor->Inductance;
             }
           } else {
             if (c.first->Connections[0]->nodeName != "GND") {
-              A.data[currentLocation][componentConnectionIdx2] -= 1;
-              //E.data[currentLocation][currentLocation] += inductor->Inductance;
+              A.data[componentCurrentIdx][componentConnectionIdx2] -= 1;
             }
           }
           break;
         }
-        case ComponentType::VOLTAGESOURCE: {
+        case Component::ComponentType::VOLTAGESOURCE: {
           int componentConnectionIdx1 = findNodeLocationFromNode(c.first->Connections[0]);
           int componentCurrentIdx = findNodeLocationFromSymbol("i_" + c.first->ComponentName);
           auto voltageSource = dynamic_cast<VoltageSource *>(c.first.get());
@@ -253,7 +167,7 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           }
           break;
         }
-        case ComponentType::OPAMP: {
+        case Component::ComponentType::OPAMP: {
           // using:
           // I_- = I_+ = 0A
           // Vout = A * (V_+ - V_-)
@@ -265,28 +179,27 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           
           auto opamp = dynamic_cast<Opamp *>(c.first.get());
           auto amp = 100e3; // FIXME: This should be user controlled
-          //int nodeLocationCurrentVout = findNodeLocationFromSymbol("i_" + c.first->ComponentName + "N");
           int nodeLocationVout = -1;
           for (auto& n : findNodeFromComponent(c.first)) {
             for (auto& com : n->components) {
-              if (com.second == OPAMP_OUT && c.first->ComponentName == com.first->ComponentName) {
+              if (com.second == Component::OPAMP_OUT && c.first->ComponentName == com.first->ComponentName) {
                 nodeLocationVout = findNodeLocationFromNode(n);
               }
             }
           }
 
           switch (c.second) {
-          case OPAMP_P: {
+          case Component::OPAMP_P: {
             int pos = findNodeLocationFromNode(node);
             A.data[nodeLocationVout][pos] = -amp;
             break;
           }
-          case OPAMP_N: {
+          case Component::OPAMP_N: {
             int pos = findNodeLocationFromNode(node);
             A.data[nodeLocationVout][pos] = amp;
             break;
           }
-          case OPAMP_OUT:{
+          case Component::OPAMP_OUT:{
             int pos = findNodeLocationFromNode(node);
             A.data[nodeLocationVout][pos] = 1;
             break;
@@ -298,20 +211,16 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           }
           break;
         }
-        case ComponentType::DIODE: {
+        case Component::ComponentType::DIODE: {
           std::cerr << "ERROR: Diodes not done yet" << std::endl;
           break;
         }
         default: {
-          std::cerr << "ERROR: Component of type: " << c.first->Type
-                    << " and name: " << c.first->ComponentName << " was not handled"
-                    << std::endl;
+          std::cerr << "ERROR: Component of type: " << c.first->Type << " and name: " << c.first->ComponentName << " was not handled" << std::endl;
         }
         }
       }
-    } else {
-      int GNDLocation = findNodeLocationFromNode(node); // node == GND
-      A.data[equationNumber][GNDLocation] = 1;
+
     }
     equationNumber++;
   }
@@ -363,6 +272,7 @@ std::vector<Node *> Circuit<T1, T2, T3>::findNodeFromComponent(std::shared_ptr<C
   }
   return nodesWithComponent;
 }
+
 template<typename T1, typename T2, typename T3>
 int Circuit<T1, T2, T3>::findNodeLocationFromNode(Node *node) {
   for (int i = 0; i < syms.rows; i++) {
@@ -387,40 +297,35 @@ int Circuit<T1, T2, T3>::findNodeLocationFromSymbol(std::string symName) {
   std::cerr << "ERROR: Location Not Found" << std::endl;
   return -1;
 }
+
 template<typename T1, typename T2, typename T3>
 void Circuit<T1, T2, T3>::generateSymbols() {
   bool hasGround = false;
-  for (auto node : nodes) {
-    syms.data.push_back({symbol(node->nodeName)});
-    if (node->nodeName == "GND") hasGround = true;
-  }
-  if (hasGround == false) {
-    std::cerr << "ERROR: Circuit has no ground connection, please define a node with the name \"GND\"" << std::endl;
-  }
-  syms.rows = syms.data.size();
+  syms.rows = 0;
   syms.cols = 1;
   for (auto node : nodes) {
-    for (auto c : node->components) {
-      if (c.first->Type == ComponentType::VOLTAGESOURCE || c.first->Type == ComponentType::INDUCTOR) {
-        symbol componetCurrent = symbol("i_" + c.first->ComponentName);
-        auto symsTransposed = syms.transpose();
-        auto it = std::find(symsTransposed.data[0].begin(), symsTransposed.data[0].end(), componetCurrent);
+    syms.data.push_back({node->nodeName});
+    syms.rows++;
+  }
 
-        if (it == symsTransposed.data[0].end()) {
+  for (auto node : nodes) {
+    for (auto c : node->components) {
+      if (c.first->Type == Component::ComponentType::VOLTAGESOURCE || c.first->Type == Component::ComponentType::INDUCTOR) {
+        symbol componetCurrent = symbol("i_" + c.first->ComponentName);
+        
+        if (!isInSymbols(componetCurrent)) {
           syms.data.push_back({componetCurrent});
           syms.rows++;
         }
-      } else if (c.first->Type == ComponentType::OPAMP) {
+      } else if (c.first->Type == Component::ComponentType::OPAMP) {
         symbol componetCurrentP = symbol("i_" + c.first->ComponentName + "P");
         symbol componetCurrentN = symbol("i_" + c.first->ComponentName + "N");
-        auto symsTransposed = syms.transpose();
-        auto it1 = std::find(symsTransposed.data[0].begin(), symsTransposed.data[0].end(), componetCurrentP);
-        if (it1 == symsTransposed.data[0].end()) {
+        
+        if (!isInSymbols(componetCurrentP)) {
           syms.data.push_back({componetCurrentP});
           syms.rows++;
         }
-        auto it2 = std::find(symsTransposed.data[0].begin(), symsTransposed.data[0].end(), componetCurrentN);
-        if (it2 == symsTransposed.data[0].end()) {
+        if (!isInSymbols(componetCurrentN)) {
           syms.data.push_back({componetCurrentN});
           syms.rows++;
         }
@@ -429,42 +334,36 @@ void Circuit<T1, T2, T3>::generateSymbols() {
     }
   }
   syms.rows = syms.data.size();
-  syms.cols = 1;
 }
+
+template<typename T1, typename T2, typename T3>
+bool Circuit<T1, T2, T3>::isInSymbols(symbol sym) {
+  auto symsTransposed = syms.transpose();
+  auto it = std::find(symsTransposed.data[0].begin(), symsTransposed.data[0].end(), sym);
+  if (it == symsTransposed.data[0].end()) {
+    return false;
+  }
+  return true;
+}
+
 template<typename T1, typename T2, typename T3>
 void Circuit<T1, T2, T3>::preAllocateMatrixData() {
   int matrixSize = syms.rows;
   A.rows = matrixSize;
   A.cols = matrixSize;
-  std::vector<std::vector<T1>> Adata(A.rows,
-                                     std::vector<T1>(A.cols, 0.0));
-  A.data = Adata;
+  A.createData();
+  
   E.rows = matrixSize;
   E.cols = matrixSize;
-  std::vector<std::vector<T2>> Edata(E.rows,
-                                         std::vector<T2>(E.cols, 0.0));
-  E.data = Edata;
+  E.createData();
+  
   f.rows = matrixSize;
   f.cols = 1;
-  std::vector<std::vector<T3>> fdata;
-  if constexpr (std::is_arithmetic<T3>::value) {
-    std::vector<std::vector<T3>> fArithmetic(f.rows,
-                                       std::vector<T3>(f.cols, 0.0));
-    fdata = fArithmetic;
-  } else if constexpr (std::is_same<T3, function>::value) {
-    function f0;
-    f0.addOperation(Operation::multiply(0.0));
-    std::vector<std::vector<T3>> fFunction(f.rows,
-                                       std::vector<T3>(f.cols, f0));
-    fdata = fFunction;
-    
-  }
-  f.data = fdata;
+  f.createData();
+  
   initalValues.rows = matrixSize;
   initalValues.cols = 1;
-  std::vector<std::vector<double>> initalValuesdata(
-      initalValues.rows, std::vector<double>(initalValues.cols, 0.0));
-  initalValues.data = initalValuesdata;
+  initalValues.createData();
 }
 
 // This defines the current direction

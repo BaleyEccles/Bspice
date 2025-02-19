@@ -1,7 +1,7 @@
 #pragma once
 #include "matrix.h"
-#include "AlgebraicEquationSolver.h"
-#include "DifferentialEquationSolver.h"
+#include "algebraicEquationSolver.h"
+#include "differentialEquationSolver.h"
 #include "function.h"
 
 template<typename T1, typename T2, typename T3>
