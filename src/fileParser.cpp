@@ -1,6 +1,6 @@
 #include "fileParser.h"
-#include "circuit.h"
 #include "component.h"
+#include <memory>
 
 token::token(tokenType type)
   :type(type) {};
@@ -346,7 +346,7 @@ std::shared_ptr<token> fileParser::getTokenPtrFromName(const std::string& argNam
 }
 
 void fileParser::addTime(const std::string &line) {
-  std::shared_ptr<timeToken> time = getTime(line);
+  auto time = std::make_shared<timeToken>();
   std::vector<std::string> inputs = getInputs(line);
   if (inputs.size() != 2) {
     std::cerr << "ERROR: time must have two number inputs." << std::endl;
@@ -482,8 +482,7 @@ void fileParser::addComponent(const std::string &line) {
 }
 
 void fileParser::addNode(const std::string &line) {
-
-  std::shared_ptr<nodeToken> node = getNode(line);
+  auto node = std::make_shared<nodeToken>();
   std::vector<std::string> inputs = getInputs(line);
   for (auto& s : inputs) {
     std::vector<std::string> subInputs = getInputs(line);
@@ -565,7 +564,7 @@ void fileParser::addNode(const std::string &line) {
 }
 
 void fileParser::addPlot(const std::string &line) {
-  std::shared_ptr<plotToken> plot = getPlot(line);
+  auto plot = std::make_shared<plotToken>();
   std::vector<std::string> inputs = getInputs(line);
   if (inputs.size() != 1) {
     std::cerr << "ERROR: Plots must have 1 input." << std::endl;
@@ -583,7 +582,7 @@ void fileParser::addPlot(const std::string &line) {
 
 
 void fileParser::addCalculate(const std::string &line) {
-  std::shared_ptr<calculateToken> calculate = getCalculate(line);
+  auto calculate = std::make_shared<calculateToken>();
   std::vector<std::string> inputs = getInputs(line);
   calculateToken::calculateType calculateType = getCalculateType(inputs[0]);
   verifyCalculateArguments(calculateType, inputs);
@@ -605,7 +604,7 @@ void fileParser::addCalculate(const std::string &line) {
 
 
 void fileParser::addFourier(const std::string &line) {
-  std::shared_ptr<fourierToken> fourier = getFourier(line);
+  auto fourier = std::make_shared<fourierToken>();
   std::vector<std::string> inputs = getInputs(line);
   if (inputs.size() != 2) {
     std::cerr << "ERROR: fourier transforms must have 2 input." << std::endl;
@@ -622,27 +621,8 @@ void fileParser::addFourier(const std::string &line) {
   tokens.push_back(fourier);
 }
 
-std::shared_ptr<nodeToken> fileParser::getNode(const std::string &line) {
-  return std::make_shared<nodeToken>();
-}
-
-std::shared_ptr<timeToken> fileParser::getTime(const std::string &line) {
-  return std::make_shared<timeToken>();
-}
 
 
-std::shared_ptr<fourierToken> fileParser::getFourier(const std::string &line) {
-  return std::make_shared<fourierToken>();
-}
-
-
-std::shared_ptr<plotToken> fileParser::getPlot(const std::string &line) {
-  return std::make_shared<plotToken>();
-}
-
-std::shared_ptr<calculateToken> fileParser::getCalculate(const std::string &line) {
-  return std::make_shared<calculateToken>();
-}
 
 std::shared_ptr<dataToken> fileParser::getData(std::string name) {
   for (auto& token : tokens) {
