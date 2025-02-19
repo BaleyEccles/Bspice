@@ -7,7 +7,7 @@
 
 
 int main() {
-  fileParser parsedFile("../Examples/lowPassOpamp.circuit"); // this example does not work
+  fileParser parsedFile("../Examples/capacitor.circuit"); // this example does not work
   auto tokens = parsedFile.tokens;
   Circuit<double, double, function> circuit = createCircuitFromTokens<double, double, function>(tokens);
   circuit.calculate();

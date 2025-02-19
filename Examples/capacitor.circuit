@@ -1,9 +1,10 @@
 time{1}{1m}
 voltage_source{Vcc}{5}
-resistor{R1}{10k}
-capacitor{C1}{10u}
+resistor{R1}{1k}
+capacitor{C1}{100u}
 node{e1}{Vcc}{R1}
 node{e2}{R1}{C1}
 node{GND}{C1}
 plot{e1}
 plot{e2}
+

@@ -161,16 +161,16 @@ void Circuit<T1, T2, T3>::generateMatrices() {
             std::cerr << "ERROR: Resistor " << c.first->ComponentName
                       << " has not got enough connections" << std::endl;
           }
-          int nodeLocation1 = findNodeLocationFromNode(c.first->Connections[0]);
-          int nodeLocation2 = findNodeLocationFromNode(c.first->Connections[1]);
+          int componentConnectionIdx1 = findNodeLocationFromNode(c.first->Connections[0]);
+          int componentConnectionIdx2 = findNodeLocationFromNode(c.first->Connections[1]);
           auto resistor = dynamic_cast<Resistor *>(c.first.get());
 
           if (node == c.first->Connections[0]) {
-            A.data[equationNumber][nodeLocation1] += 1 / resistor->Resistance;
-            A.data[equationNumber][nodeLocation2] += -1 / resistor->Resistance;
+            A.data[equationNumber][componentConnectionIdx1] += 1 / resistor->Resistance;
+            A.data[equationNumber][componentConnectionIdx2] += -1 / resistor->Resistance;
           } else {
-            A.data[equationNumber][nodeLocation1] -= 1 / resistor->Resistance;
-            A.data[equationNumber][nodeLocation2] -= -1 / resistor->Resistance;
+            A.data[equationNumber][componentConnectionIdx1] -= 1 / resistor->Resistance;
+            A.data[equationNumber][componentConnectionIdx2] -= -1 / resistor->Resistance;
           }
 
           break;
@@ -183,23 +183,23 @@ void Circuit<T1, T2, T3>::generateMatrices() {
             std::cerr << "ERROR: Capacitor " << c.first->ComponentName
                       << " has not got enough connections" << std::endl;
           }
-          int nodeLocation1 = findNodeLocationFromNode(c.first->Connections[0]);
-          int nodeLocation2 = findNodeLocationFromNode(c.first->Connections[1]);
+          int componentConnectionIdx1 = findNodeLocationFromNode(c.first->Connections[0]);
+          int componentConnectionIdx2 = findNodeLocationFromNode(c.first->Connections[1]);
           auto capacitor = dynamic_cast<Capacitor *>(c.first.get());
 
           if (node == c.first->Connections[0]) {
             if (c.first->Connections[0]->nodeName != "GND") {
-              E.data[equationNumber][nodeLocation1] += capacitor->Capacitance;
+              E.data[equationNumber][componentConnectionIdx1] += capacitor->Capacitance;
             }
             if (c.first->Connections[1]->nodeName != "GND") {
-              E.data[equationNumber][nodeLocation2] += -capacitor->Capacitance;
+              E.data[equationNumber][componentConnectionIdx2] += -capacitor->Capacitance;
             }
           } else {
             if (c.first->Connections[0]->nodeName != "GND") {
-              E.data[equationNumber][nodeLocation1] -= capacitor->Capacitance;
+              E.data[equationNumber][componentConnectionIdx1] -= capacitor->Capacitance;
             }
             if (c.first->Connections[1]->nodeName != "GND") {
-              E.data[equationNumber][nodeLocation2] -= -capacitor->Capacitance;
+              E.data[equationNumber][componentConnectionIdx2] -= -capacitor->Capacitance;
             }
           }
           break;
@@ -214,8 +214,8 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           }
           int currentLocation = findNodeLocationFromSymbol("i_" + c.first->ComponentName);
 
-          int nodeLocation1 = findNodeLocationFromNode(c.first->Connections[0]);
-          int nodeLocation2 = findNodeLocationFromNode(c.first->Connections[1]);
+          int componentConnectionIdx1 = findNodeLocationFromNode(c.first->Connections[0]);
+          int componentConnectionIdx2 = findNodeLocationFromNode(c.first->Connections[1]);
           auto inductor = dynamic_cast<Inductor *>(c.first.get());
 
           if (node == c.first->Connections[0]) {
@@ -229,27 +229,27 @@ void Circuit<T1, T2, T3>::generateMatrices() {
           }
           if (node == c.first->Connections[0]) {
             if (c.first->Connections[0]->nodeName != "GND") {
-              A.data[currentLocation][nodeLocation1] += 1;
+              A.data[currentLocation][componentConnectionIdx1] += 1;
               E.data[currentLocation][currentLocation] -= inductor->Inductance;
             }
           } else {
             if (c.first->Connections[0]->nodeName != "GND") {
-              A.data[currentLocation][nodeLocation2] -= 1;
+              A.data[currentLocation][componentConnectionIdx2] -= 1;
               //E.data[currentLocation][currentLocation] += inductor->Inductance;
             }
           }
           break;
         }
         case ComponentType::VOLTAGESOURCE: {
-          int nodeLocation1 = findNodeLocationFromNode(c.first->Connections[0]);
-          int nodeLocationCurrent = findNodeLocationFromSymbol("i_" + c.first->ComponentName);
+          int componentConnectionIdx1 = findNodeLocationFromNode(c.first->Connections[0]);
+          int componentCurrentIdx = findNodeLocationFromSymbol("i_" + c.first->ComponentName);
           auto voltageSource = dynamic_cast<VoltageSource *>(c.first.get());
-          A.data[equationNumber][nodeLocationCurrent] = 1;
-          A.data[nodeLocationCurrent][equationNumber] = 1;
+          A.data[equationNumber][componentCurrentIdx] = 1;
+          A.data[componentCurrentIdx][equationNumber] = 1;
           if constexpr (std::is_arithmetic<T3>::value) {
-            f.data[nodeLocationCurrent][0] += voltageSource->Values[0];
+            f.data[componentCurrentIdx][0] += voltageSource->Values[0];
           }  else if constexpr (std::is_same<T3, function>::value) {
-            f.data[nodeLocationCurrent][0] = f.data[nodeLocationCurrent][0] + createVoltageFunction(voltageSource->fType, voltageSource->Values);
+            f.data[componentCurrentIdx][0] = f.data[componentCurrentIdx][0] + createVoltageFunction(voltageSource->fType, voltageSource->Values);
           }
           break;
         }
@@ -478,4 +478,3 @@ void Circuit<T1, T2, T3>::generateComponentConections() {
     }
   }
 };
-
