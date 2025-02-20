@@ -95,6 +95,7 @@ Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<token>>&
           auto c = std::make_shared<Diode>(componentT->name, componentT->values[0]);
           componentT->circuitComponentPtr = c;
           node->addComponent(c, component.second);
+          circuit.isLinear = false;
           break;
         }
         default: {

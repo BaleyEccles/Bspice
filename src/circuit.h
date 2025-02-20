@@ -25,11 +25,13 @@ public:
   matrix<T3> f;
   matrix<double> initalValues;
   matrix<symbol> syms;
+  bool isLinear = true;
 
   // Helper functions
   matrix<symbol> removeGroundSym();
 private:
-  void generateMatrices();
+  void generateMatricesLinear();
+  void generateMatricesNonLinear();
   std::vector<Node*> findNodeFromComponent(std::shared_ptr<Component> comp);
   void generateSymbols();
   void preAllocateMatrixData();
@@ -54,7 +56,11 @@ void Circuit<T1, T2, T3>::calculate() {
   preAllocateMatrixData();
 
   generateComponentConections();
-  generateMatrices();
+  if (isLinear) {
+    generateMatricesLinear();
+  } else {
+    generateMatricesNonLinear();
+  }
 
   A.print("A:");
   E.print("E:");
@@ -62,8 +68,15 @@ void Circuit<T1, T2, T3>::calculate() {
   syms.print("syms:");
   initalValues.print("Inital Values:");
 }
+
 template<typename T1, typename T2, typename T3>
-void Circuit<T1, T2, T3>::generateMatrices() {
+void Circuit<T1, T2, T3>::generateMatricesNonLinear() {
+  std::cout << "This is a non-linear circuit" << std::endl;
+
+}
+
+template<typename T1, typename T2, typename T3>
+void Circuit<T1, T2, T3>::generateMatricesLinear() {
   
   int equationNumber = 0;
   for (auto node : nodes) {
