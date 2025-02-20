@@ -117,10 +117,12 @@ public:
 private:
   std::vector<std::shared_ptr<token>> tokenize(const std::string& line);
   
+  std::string removeComments(std::string line);
+    
   std::vector<std::string> getInputs(const std::string &line);
-  
-  std::string getName(std::string name);
   double getValue(std::string &value);
+  std::string getName(std::string name);
+  
   calculateToken::calculateType getCalculateType(std::string input);
   std::shared_ptr<token> getTokenPtrFromName(const std::string& argName);
   

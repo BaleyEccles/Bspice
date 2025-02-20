@@ -33,13 +33,24 @@ fileParser::fileParser(const std::string& filename) {
   std::string line;
   if (file.is_open()) {
     while (std::getline(file, line)) {
-      auto lineTokens = tokenize(line);
+      auto lineTokens = tokenize(removeComments(line));
       tokens = lineTokens;
     }
     file.close();
   } else {
     std::cerr << "Unable to open file" << std::endl;
   }
+}
+
+std::string fileParser::removeComments(std::string line) {
+  int charCount = 0;
+  for (char c : line) {
+    if (c == ';') {
+      return line.substr(0, charCount);
+    }
+    charCount++;
+  }
+  return line;
 }
 
 std::vector<std::shared_ptr<token>> fileParser::tokenize(const std::string& line) {

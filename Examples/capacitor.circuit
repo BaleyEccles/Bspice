@@ -2,6 +2,8 @@ time{1}{1m}
 voltage_source{Vcc}{5}
 resistor{R1}{1k}
 capacitor{C1}{100u}
+;This is a comment
+;capacitor{C1}{10u} this is a test to see if the comment is actually removed
 node{e1}{Vcc}{R1}
 node{e2}{R1}{C1}
 node{GND}{C1}
