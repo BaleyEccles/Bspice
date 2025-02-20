@@ -26,6 +26,8 @@ struct symbol {
 
 namespace branchOperation {
   double add(double branch1, double branch2);
+
+  double subtract(double branch1, double branch2);
   
   double multiply(double branch1, double branch2);
   
@@ -75,6 +77,28 @@ public:
     return f;
   }
 
+  function operator-(const function& other) {
+    std::shared_ptr<function> f1 = std::make_shared<function>(*this);
+    std::shared_ptr<function> f2 = std::make_shared<function>(other);
+    function f;
+    f.addBranches(branchOperation::subtract, f1, f2);
+    return f;
+  }
+
+  function operator+=(const function& other) {
+    std::shared_ptr<function> f1 = std::make_shared<function>(*this);
+    std::shared_ptr<function> f2 = std::make_shared<function>(other);
+    this->addBranches(branchOperation::add, f1, f2);
+    return *this;
+  }
+  
+  function operator-=(const function& other) {
+    std::shared_ptr<function> f1 = std::make_shared<function>(*this);
+    std::shared_ptr<function> f2 = std::make_shared<function>(other);
+    this->addBranches(branchOperation::subtract, f1, f2);
+    return *this;
+  }
+
 };
 
 
@@ -93,6 +117,46 @@ public:
   bool variblesAreKnown = false;
   std::vector<symbol> varibles;
   std::vector<symbol> getVaribles();
+  
+  multiVaribleFunction operator+(const function& other) {
+    std::shared_ptr<multiVaribleFunction> fMultiVarible = std::make_shared<multiVaribleFunction>(this);
+    multiVaribleFunction parent;
+    parent.branchEquations = std::make_pair(fMultiVarible, nullptr);
+    parent.isBranch = true;
+    parent.brachOperation = branchOperation::add;
+    parent.nodeData = other;
+    return parent;
+  };
+
+  multiVaribleFunction operator-(const function& other) {
+    std::shared_ptr<multiVaribleFunction> fMultiVarible = std::make_shared<multiVaribleFunction>(this);
+    multiVaribleFunction parent;
+    parent.branchEquations = std::make_pair(fMultiVarible, nullptr);
+    parent.isBranch = true;
+    parent.brachOperation = branchOperation::subtract;
+    parent.nodeData = other;
+    return parent;
+  }
+  
+  multiVaribleFunction operator+=(const function& other) {
+    std::shared_ptr<multiVaribleFunction> fMultiVarible = std::make_shared<multiVaribleFunction>(this);
+    multiVaribleFunction parent;
+    parent.branchEquations = std::make_pair(fMultiVarible, nullptr);
+    parent.isBranch = true;
+    parent.brachOperation = branchOperation::add;
+    parent.nodeData = other;
+    return parent;
+  };
+
+  multiVaribleFunction operator-=(const function& other) {
+    std::shared_ptr<multiVaribleFunction> fMultiVarible = std::make_shared<multiVaribleFunction>(this);
+    multiVaribleFunction parent;
+    parent.branchEquations = std::make_pair(fMultiVarible, nullptr);
+    parent.isBranch = true;
+    parent.brachOperation = branchOperation::subtract;
+    parent.nodeData = other;
+    return parent;
+  };
 };
 
 function createConstantFunction(double val, symbol sym = symbol(""));
