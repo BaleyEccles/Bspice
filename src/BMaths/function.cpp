@@ -122,6 +122,9 @@ namespace branchOperation {
   double add(double branch1, double branch2) {
     return branch1 + branch2;
   }
+  double subtract(double branch1, double branch2) {
+    return branch1 + branch2;
+  }
   
   double multiply(double branch1, double branch2) {
     return branch1 * branch2;
