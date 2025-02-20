@@ -25,9 +25,14 @@ matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f, 
 
 
 
+template<typename T>
+std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolveNonLinear(DifferentialAlgebraicEquation<multiVaribleFunction, multiVaribleFunction, T> DAE, matrix<double> initalGuess, double timeStep, double timeEnd) {
+  std::cerr << "TODO: Started Non Linear Solve" << std::endl;
+}
 
-template<typename T1, typename T2, typename T3>
-std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(DifferentialAlgebraicEquation<T1, T2, T3> DAE, matrix<double> initalGuess, double timeStep, double timeEnd) {
+
+template<typename T>
+std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolveLinear(DifferentialAlgebraicEquation<double, double, T> DAE, matrix<double> initalGuess, double timeStep, double timeEnd) {
   std::vector<matrix<double>> results;
   std::vector<double> time;
   int steps = ceil(timeEnd/timeStep);
@@ -51,10 +56,10 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(Differenti
     
     auto ynDE = getRowsFromIdx(yn, DEIdx);
     matrix<double> xn1;
-    if constexpr (std::is_arithmetic<T3>::value) {
+    if constexpr (std::is_arithmetic<T>::value) {
       xn1 = add(multiply(DEs.E.invert(), subtract(DEs.f, multiply(DEs.A, yn))).scale(timeStep), ynDE);
 
-    } else if constexpr (std::is_same<T3, function>::value) {
+    } else if constexpr (std::is_same<T, function>::value) {
       matrix<double> DEsfEval = DEs.f.evaluate(tn);
       //auto E2 = DEs.E.scale(0.25);
       xn1 = ((DEs.E.invert() * (DEsfEval - (DEs.A * yn))).scale(timeStep) + ynDE);
@@ -70,9 +75,9 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve2(Differenti
     }
     auto An1xn1 = (AEs.A * xn1New);
     matrix<double> newf;
-    if constexpr (std::is_arithmetic<T3>::value) {
+    if constexpr (std::is_arithmetic<T>::value) {
       newf = subtract(AEs.f, An1xn1);
-    } else if constexpr (std::is_same<T3, function>::value) {
+    } else if constexpr (std::is_same<T, function>::value) {
       auto AEfEval = AEs.f.evaluate(tn);
       newf = (AEfEval - An1xn1);
     }

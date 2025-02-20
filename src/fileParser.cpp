@@ -452,6 +452,7 @@ void fileParser::createDiode(std::shared_ptr<componentToken> component, std::vec
   component->fType = VoltageSource::NONE;
   component->name = name;
   component->addValue(value);
+  isLinear = false;
 }
   
 void fileParser::addComponent(const std::string &line) {

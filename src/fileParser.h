@@ -114,6 +114,7 @@ class fileParser {
 public:
   fileParser(const std::string& filename);
   std::vector<std::shared_ptr<token>> tokens;
+  bool isLinear = true;
 private:
   std::vector<std::shared_ptr<token>> tokenize(const std::string& line);
   

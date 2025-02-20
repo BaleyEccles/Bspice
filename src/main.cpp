@@ -7,20 +7,31 @@
 
 
 int main() {
+  
   fileParser parsedFile("../Examples/diode.circuit");
   auto tokens = parsedFile.tokens;
-  Circuit<double, double, function> circuit = createCircuitFromTokens<double, double, function>(tokens);
-  circuit.calculate();
-  auto& initalValues = circuit.initalValues;
-  auto& A = circuit.A;
-  auto& E = circuit.E;
-  auto& f = circuit.f;
-  auto& s = circuit.symbols;
-  double& stopTime = circuit.stopTime;
-  double& timeStep = circuit.timeStep;
-  DifferentialAlgebraicEquation<double, double, function> DAE = {A, E, f, s};
-  auto output = DAESolve2(DAE, initalValues, timeStep, stopTime);
-  postProcess("plotData.m", output.first, output.second, s, tokens);
   
+  if (parsedFile.isLinear) {
+    auto circuit = createCircuitFromTokens<double, double, function>(tokens);
+    circuit.calculate();
+    
+    double& stopTime = circuit.stopTime;
+    double& timeStep = circuit.timeStep;
+    DifferentialAlgebraicEquation<double, double, function> DAE = {circuit.A, circuit.E, circuit.f, circuit.symbols};
+    
+    auto output = DAESolveLinear(DAE, circuit.initalValues, timeStep, stopTime);
+    postProcess("plotData.m", output.first, output.second, circuit.symbols, tokens);
+  } else {
+    auto circuit = createCircuitFromTokens<multiVaribleFunction, multiVaribleFunction, function>(tokens);
+    circuit.calculate();
+    
+    double& stopTime = circuit.stopTime;
+    double& timeStep = circuit.timeStep;
+    DifferentialAlgebraicEquation<multiVaribleFunction, multiVaribleFunction, function> DAE = {circuit.A, circuit.E, circuit.f, circuit.symbols};
+
+    auto output = DAESolveNonLinear(DAE, circuit.initalValues, timeStep, stopTime);
+    postProcess("plotData.m", output.first, output.second, circuit.symbols, tokens);
+  }
+
   return 0;
 };
