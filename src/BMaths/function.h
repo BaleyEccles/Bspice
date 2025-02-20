@@ -95,7 +95,7 @@ public:
   std::vector<symbol> getVaribles();
 };
 
-function createConstantFunction(double val);
+function createConstantFunction(double val, symbol sym = symbol(""));
 
 
 namespace Operation {
@@ -106,6 +106,8 @@ namespace Operation {
   operationPtr multiply(double arg);
   
   operationPtr divide(double arg);
+
+  operationPtr exp(double arg1, double arg2);
 
   operationPtr sin(double A = 1.0, double frequency = 1/(2*M_PI), double theta = 0);
   

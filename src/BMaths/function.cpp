@@ -16,8 +16,9 @@ double function::evaluate(double t) const {
   return t;
 };
 
-function createConstantFunction(double val) {
+function createConstantFunction(double val, symbol sym) {
   function f;
+  f.functionSymbol = sym;
   f.addOperation(Operation::constant(val));
   return f;
 }
@@ -93,6 +94,10 @@ namespace Operation {
   
   operationPtr divide(double arg) {
     return [arg](double t) { return t / arg; };
+  }
+
+  operationPtr exp(double arg1, double arg2) {
+    return [arg1, arg2](double t) { return pow(arg1, arg2*t); };
   }
 
   operationPtr sin(double A, double frequency, double theta) {

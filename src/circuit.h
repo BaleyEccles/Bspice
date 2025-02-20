@@ -4,6 +4,7 @@
 #include <memory>
 #include <algorithm>
 #include "BMaths/BMaths.h"
+#include "BMaths/function.h"
 #include "component.h"
 
 template<typename T1, typename T2, typename T3>
@@ -24,7 +25,7 @@ public:
   matrix<T2> E;
   matrix<T3> f;
   matrix<double> initalValues;
-  matrix<symbol> syms;
+  matrix<symbol> symbols;
   bool isLinear = true;
 
   // Helper functions
@@ -32,9 +33,11 @@ public:
 private:
   void generateMatricesLinear();
   void generateMatricesNonLinear();
-  std::vector<Node*> findNodeFromComponent(std::shared_ptr<Component> comp);
   void generateSymbols();
-  void preAllocateMatrixData();
+  void preAllocateMatrixDataLinear();
+  void preAllocateMatrixDataNonLinear();
+  
+  std::vector<Node*> findNodeFromComponent(std::shared_ptr<Component> comp);
   int findNodeLocationFromNode(Node* node);
   int findNodeLocationFromSymbol(std::string symName);
   void generateComponentConections();
@@ -48,31 +51,152 @@ private:
 
 template<typename T1, typename T2, typename T3>
 Circuit<T1, T2, T3>::Circuit() {}
+
 template<typename T1, typename T2, typename T3>
-void Circuit<T1, T2, T3>::addNode(Node *node) { nodes.push_back(node); }
+void Circuit<T1, T2, T3>::addNode(Node *node) {
+  nodes.push_back(node);
+}
+
 template<typename T1, typename T2, typename T3>
 void Circuit<T1, T2, T3>::calculate() {
   generateSymbols();
-  preAllocateMatrixData();
-
+  
   generateComponentConections();
   if (isLinear) {
+    preAllocateMatrixDataLinear();
     generateMatricesLinear();
   } else {
+    preAllocateMatrixDataNonLinear();
     generateMatricesNonLinear();
   }
 
   A.print("A:");
   E.print("E:");
   f.print("f:");
-  syms.print("syms:");
+  symbols.print("syms:");
   initalValues.print("Inital Values:");
 }
 
 template<typename T1, typename T2, typename T3>
 void Circuit<T1, T2, T3>::generateMatricesNonLinear() {
-  std::cout << "This is a non-linear circuit" << std::endl;
+  int equationNumber = 0;
+  for (auto node : nodes) {
+    if (node->nodeName == "GND") {
+      int GNDLocation = findNodeLocationFromNode(node); // node == GND
+      A.data[equationNumber][GNDLocation] = 1;
+    } else {
+      for (auto c : node->components) {
+        switch (c.first->Type) {
+        case Component::ComponentType::OPAMP:
+        case Component::ComponentType::INDUCTOR:
+        case Component::ComponentType::CURRENTSOURCE:
+        case Component::ComponentType::CAPACITOR: {
+          std::cerr << "TODO: Non linear component not done yet" << std::endl;
+          break;
+        }
+        case Component::ComponentType::RESISTOR: {
+          // i_R = G*V_node1 - G*V_node2
+          int componentConnectionIdx1 = findNodeLocationFromNode(c.first->Connections[0]);
+          int componentConnectionIdx2 = findNodeLocationFromNode(c.first->Connections[1]);
+          auto resistor = dynamic_cast<Resistor *>(c.first.get());
 
+          if (node == c.first->Connections[0]) {
+            function fNode1 = createConstantFunction(1/resistor->Resistance, symbols.data[componentConnectionIdx1][0]);
+            function fNode2 = createConstantFunction(-1/resistor->Resistance, symbols.data[componentConnectionIdx1][0]);
+            A.data[equationNumber][0] += fNode1;
+            A.data[equationNumber][0] -= fNode2;
+          } else {
+            function fNode1 = createConstantFunction(-1/resistor->Resistance, symbols.data[componentConnectionIdx1][0]);
+            function fNode2 = createConstantFunction(1/resistor->Resistance, symbols.data[componentConnectionIdx1][0]);
+            A.data[equationNumber][0] += fNode1;
+            A.data[equationNumber][0] -= fNode2;
+          }
+          break;
+        }
+        case Component::ComponentType::VOLTAGESOURCE: {
+          // f(X) + i_Vs = 0
+          // AND
+          // V_node1 - V_node2 = f(t)
+          int componentConnectionIdx1 = findNodeLocationFromNode(c.first->Connections[0]);
+          int componentCurrentIdx = findNodeLocationFromSymbol("i_" + c.first->ComponentName);
+          auto voltageSource = dynamic_cast<VoltageSource *>(c.first.get());
+          
+          A.data[equationNumber][0] += createConstantFunction(1.0, symbols.data[componentCurrentIdx][0]);      // f(X) + i_Vs = 0
+          A.data[componentCurrentIdx][0] += createConstantFunction(1.0, symbols.data[componentCurrentIdx][0]); // i_Vs = f(t)
+          if constexpr (std::is_arithmetic<T3>::value) {
+            f.data[componentCurrentIdx][0] += voltageSource->Values[0];
+          }  else if constexpr (std::is_same<T3, function>::value) {
+            f.data[componentCurrentIdx][0] += createVoltageFunction(voltageSource->fType, voltageSource->Values);
+          }
+          break;
+        }
+        case Component::ComponentType::DIODE: {
+          // i_D = I_s* (e^{B*v_D} - 1) => I_s = I_s*e^{B*v_D} - i_D
+          // AND
+          // v_D = v_node1 - v_node2
+          
+          // FIXME: These should be user controlled
+          // taken from wikipedia for now
+          double I_s = 1e-9; // 1nA
+          double n = 1.5; // Ideality factor
+          double V_T = 25.852e-3; // 25.852mV
+          double B = 1/(n*V_T);
+            
+          int componentConnectionIdx1 = findNodeLocationFromNode(c.first->Connections[0]);
+          int componentConnectionIdx2 = findNodeLocationFromNode(c.first->Connections[1]);
+          auto diode = dynamic_cast<Diode *>(c.first.get());
+          
+          // Shockleys equation
+          int diodeCurrentLocation = findEquationLocationFromSymbol("i_" + diode->ComponentName);
+          int diodeVoltageLocation = findEquationLocationFromSymbol("v_" + diode->ComponentName);
+            
+          function fExp;
+          fExp.addOperation(Operation::exp(std::exp(1.0), B));
+          fExp.functionSymbol = symbols.data[diodeVoltageLocation][0];
+            
+          function fCurrent;
+          fCurrent.functionSymbol = symbols.data[diodeCurrentLocation][0];
+          fCurrent.addOperation(Operation::multiply(-1/I_s));
+
+          // Voltage accros diode
+          function fVoltageNode1;
+          fVoltageNode1.addOperation(Operation::multiply(1.0));
+          fVoltageNode1.functionSymbol = symbols.data[componentConnectionIdx1][0];
+          function fVoltageNode2;
+          fVoltageNode2.addOperation(Operation::multiply(1.0));
+          fVoltageNode2.functionSymbol = symbols.data[componentConnectionIdx2][0];
+          function fVoltageDiode;
+          fVoltageDiode.addOperation(Operation::multiply(1.0));
+          fVoltageDiode.functionSymbol = symbols.data[diodeCurrentLocation][0];
+
+          if (node == c.first->Connections[0]) {
+            A.data[diodeCurrentLocation][0] += fExp;
+            A.data[diodeCurrentLocation][0] += fCurrent;
+            f.data[diodeCurrentLocation][0] += createConstantFunction(1.0, symbol("t"));
+            
+            A.data[diodeVoltageLocation][0] += fVoltageNode1;
+            A.data[diodeVoltageLocation][0] -= fVoltageNode2;
+            A.data[diodeVoltageLocation][0] -= fVoltageDiode;
+          } else {
+            A.data[diodeCurrentLocation][0] -= fExp;
+            A.data[diodeCurrentLocation][0] -= fCurrent;
+            f.data[diodeCurrentLocation][0] += createConstantFunction(1.0, symbol("t"));
+            
+            A.data[diodeVoltageLocation][0] += fVoltageNode1;
+            A.data[diodeVoltageLocation][0] -= fVoltageNode2;
+            A.data[diodeVoltageLocation][0] -= fVoltageDiode;
+          }
+
+          function fCurrentDiode;
+          fCurrentDiode.addOperation(Operation::multiply(1.0));
+          fCurrentDiode.functionSymbol = symbols.data[diodeCurrentLocation][0];
+          A.data[equationNumber][0] += fCurrentDiode;
+          break;
+        }
+        }
+      }
+    }
+  }
 }
 
 template<typename T1, typename T2, typename T3>
@@ -224,12 +348,9 @@ void Circuit<T1, T2, T3>::generateMatricesLinear() {
           }
           break;
         }
-        case Component::ComponentType::DIODE: {
-          std::cerr << "ERROR: Diodes not done yet" << std::endl;
-          break;
-        }
         default: {
           std::cerr << "ERROR: Component of type: " << c.first->Type << " and name: " << c.first->ComponentName << " was not handled" << std::endl;
+          break;
         }
         }
       }
@@ -242,6 +363,7 @@ void Circuit<T1, T2, T3>::generateMatricesLinear() {
 template<typename T1, typename T2, typename T3>
 function Circuit<T1, T2, T3>::createVoltageFunction(VoltageSource::functionType& type, std::vector<double>& values) {
   function f;
+  f.functionSymbol = symbol("t");
   switch (type) {
   case VoltageSource::functionType::NONE: {
     f.addOperation(Operation::multiply(0.0));
@@ -288,9 +410,9 @@ std::vector<Node *> Circuit<T1, T2, T3>::findNodeFromComponent(std::shared_ptr<C
 
 template<typename T1, typename T2, typename T3>
 int Circuit<T1, T2, T3>::findNodeLocationFromNode(Node *node) {
-  for (int i = 0; i < syms.rows; i++) {
-    for (int j = 0; j < syms.cols; j++) {
-      if (syms.data[i][j].name == node->nodeName) {
+  for (int i = 0; i < symbols.rows; i++) {
+    for (int j = 0; j < symbols.cols; j++) {
+      if (symbols.data[i][j].name == node->nodeName) {
         return i;
       }
     }
@@ -300,9 +422,9 @@ int Circuit<T1, T2, T3>::findNodeLocationFromNode(Node *node) {
 }
 template<typename T1, typename T2, typename T3>
 int Circuit<T1, T2, T3>::findNodeLocationFromSymbol(std::string symName) {
-  for (int i = 0; i < syms.rows; i++) {
-    for (int j = 0; j < syms.cols; j++) {
-      if (syms.data[i][j].name == symName) {
+  for (int i = 0; i < symbols.rows; i++) {
+    for (int j = 0; j < symbols.cols; j++) {
+      if (symbols.data[i][j].name == symName) {
         return i;
       }
     }
@@ -314,11 +436,11 @@ int Circuit<T1, T2, T3>::findNodeLocationFromSymbol(std::string symName) {
 template<typename T1, typename T2, typename T3>
 void Circuit<T1, T2, T3>::generateSymbols() {
   bool hasGround = false;
-  syms.rows = 0;
-  syms.cols = 1;
+  symbols.rows = 0;
+  symbols.cols = 1;
   for (auto node : nodes) {
-    syms.data.push_back({node->nodeName});
-    syms.rows++;
+    symbols.data.push_back({node->nodeName});
+    symbols.rows++;
   }
 
   for (auto node : nodes) {
@@ -327,31 +449,42 @@ void Circuit<T1, T2, T3>::generateSymbols() {
         symbol componetCurrent = symbol("i_" + c.first->ComponentName);
         
         if (!isInSymbols(componetCurrent)) {
-          syms.data.push_back({componetCurrent});
-          syms.rows++;
+          symbols.data.push_back({componetCurrent});
+          symbols.rows++;
         }
       } else if (c.first->Type == Component::ComponentType::OPAMP) {
         symbol componetCurrentP = symbol("i_" + c.first->ComponentName + "P");
         symbol componetCurrentN = symbol("i_" + c.first->ComponentName + "N");
         
         if (!isInSymbols(componetCurrentP)) {
-          syms.data.push_back({componetCurrentP});
-          syms.rows++;
+          symbols.data.push_back({componetCurrentP});
+          symbols.rows++;
         }
         if (!isInSymbols(componetCurrentN)) {
-          syms.data.push_back({componetCurrentN});
-          syms.rows++;
+          symbols.data.push_back({componetCurrentN});
+          symbols.rows++;
         }
-
+      } else if (c.first->Type == Component::ComponentType::OPAMP) {
+        symbol componetVoltage = symbol("v_" + c.first->ComponentName);
+        symbol componetCurrent = symbol("i_" + c.first->ComponentName);
+        
+        if (!isInSymbols(componetVoltage)) {
+          symbols.data.push_back({componetVoltage});
+          symbols.rows++;
+        }
+        if (!isInSymbols(componetCurrent)) {
+          symbols.data.push_back({componetCurrent});
+          symbols.rows++;
+        }
       }
     }
   }
-  syms.rows = syms.data.size();
+  symbols.rows = symbols.data.size();
 }
 
 template<typename T1, typename T2, typename T3>
 bool Circuit<T1, T2, T3>::isInSymbols(symbol sym) {
-  auto symsTransposed = syms.transpose();
+  auto symsTransposed = symbols.transpose();
   auto it = std::find(symsTransposed.data[0].begin(), symsTransposed.data[0].end(), sym);
   if (it == symsTransposed.data[0].end()) {
     return false;
@@ -360,8 +493,28 @@ bool Circuit<T1, T2, T3>::isInSymbols(symbol sym) {
 }
 
 template<typename T1, typename T2, typename T3>
-void Circuit<T1, T2, T3>::preAllocateMatrixData() {
-  int matrixSize = syms.rows;
+void Circuit<T1, T2, T3>::preAllocateMatrixDataNonLinear() {
+  int matrixSize = symbols.rows;
+  A.rows = matrixSize;
+  A.cols = 1;
+  A.createData();
+  
+  E.rows = matrixSize;
+  E.cols = 1;
+  E.createData();
+  
+  f.rows = matrixSize;
+  f.cols = 1;
+  f.createData();
+  
+  initalValues.rows = matrixSize;
+  initalValues.cols = 1;
+  initalValues.createData();
+}
+
+template<typename T1, typename T2, typename T3>
+void Circuit<T1, T2, T3>::preAllocateMatrixDataLinear() {
+  int matrixSize = symbols.rows;
   A.rows = matrixSize;
   A.cols = matrixSize;
   A.createData();

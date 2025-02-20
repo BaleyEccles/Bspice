@@ -7,7 +7,7 @@
 
 
 int main() {
-  fileParser parsedFile("../Examples/capacitor.circuit"); // this example does not work
+  fileParser parsedFile("../Examples/diode.circuit");
   auto tokens = parsedFile.tokens;
   Circuit<double, double, function> circuit = createCircuitFromTokens<double, double, function>(tokens);
   circuit.calculate();
@@ -15,7 +15,7 @@ int main() {
   auto& A = circuit.A;
   auto& E = circuit.E;
   auto& f = circuit.f;
-  auto& s = circuit.syms;
+  auto& s = circuit.symbols;
   double& stopTime = circuit.stopTime;
   double& timeStep = circuit.timeStep;
   DifferentialAlgebraicEquation<double, double, function> DAE = {A, E, f, s};
