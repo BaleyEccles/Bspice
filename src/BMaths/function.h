@@ -9,9 +9,11 @@
 #include <algorithm>
 
 struct symbol {
-  std::string name;
+
   symbol(const std::string& n);
   symbol() : name("NULL") {};
+  std::string name;
+  std::shared_ptr<symbol> parentVarible = nullptr; // used if this varible is a derivative of parent varible
   bool operator==(const symbol& other) const {
     return other.name == name;
   }
@@ -32,6 +34,7 @@ namespace branchOperation {
   double multiply(double branch1, double branch2);
   
   double divide(double branch1, double branch2);
+  
   // TODO: add more functions
 };
 

@@ -1,4 +1,35 @@
 #include "DAESolve.h"
+#include "function.h"
+
+// Solve a DAE of the form F = f1
+// where F is a vector of multivarible functions that do not contain derivatives
+// and f is a vector of constants, or a vector of single varible functions
+// AND E = f2
+// where E is a vector of multivarible functions that contains derivatives
+// and f is a vector of constants, or a vector of single varible functions
+std::pair<std::vector<double>, std::vector<std::pair<symbol, std::vector<double>>>>
+DAESolve3(matrix<multiVaribleFunction> F, matrix<multiVaribleFunction> E, matrix<function> f1, matrix<function> f2, matrix<symbol> syms, std::vector<std::pair<symbol, double>> initalGuess, double timeStep, double timeEnd) {
+  std::vector<std::vector<std::pair<symbol, double>>> results;
+  std::vector<double> time;
+  int steps = ceil(timeEnd/timeStep);
+
+
+  for (int i = 0; i < steps; i++) {
+    double time = i * timeStep - timeStep;
+    std::vector<std::pair<symbol, double>> currentStep;
+    if (results.size() == 0) {
+      currentStep = initalGuess;
+    } else {
+      currentStep = results[results.size() - 1];
+    }
+    auto EEval = E.evaluate(currentStep);
+    auto f2Eval = f2.evaluate(time);
+    // DE stuff
+
+    auto xn1 = NewtonsMethod(E, syms, f2.evaluate(time), currentStep); // FIXME: f2.evaluate is using the other eval
+    
+  }
+}
 
 
 // Solve a DAE of the form Ax + Ex' = f
