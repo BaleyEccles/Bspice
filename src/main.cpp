@@ -6,8 +6,12 @@
 #include <vector>
 
 
-int main() {
-  fileParser parsedFile("../Examples/capacitor.circuit"); // this example does not work
+int main(int argc, char* argv[]) {
+  if (argc < 2) {
+    std::cerr << "Usage: " << argv[0] << " <input_file>" << std::endl;
+  }
+  std::string inputFile = argv[1];
+  fileParser parsedFile(inputFile); // this example does not work
   auto tokens = parsedFile.tokens;
   Circuit<double, double, function> circuit = createCircuitFromTokens<double, double, function>(tokens);
   circuit.calculate();
