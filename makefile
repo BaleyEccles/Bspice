@@ -1,6 +1,8 @@
+INPUT_FILE = NULL
+# use somthing like:
+# cd build && cmake .. && make && cd .. && make plot INPUT_FILE=../Examples/capacitor.circuit
 run:
-	cd build && cmake .. && cmake --build . --target run
-
+	cd build && ./main $(INPUT_FILE)
 
 plot: run
 	cd build && octave --no-gui plotData.m
