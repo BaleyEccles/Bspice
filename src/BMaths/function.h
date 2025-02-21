@@ -7,6 +7,7 @@
 #include <math.h>
 #include <functional>
 #include <algorithm>
+#include <map>
 
 struct symbol {
 
@@ -105,6 +106,10 @@ public:
 };
 
 
+
+typedef std::map<symbol, double> values;
+
+
 // f(x1, x2, x3, ...)
 class multiVaribleFunction {
 public:
@@ -113,9 +118,10 @@ public:
   branchPtr brachOperation = nullptr;
   std::pair<std::shared_ptr<multiVaribleFunction>, std::shared_ptr<multiVaribleFunction>> branchEquations;
 
-  double evaluate(std::vector<std::pair<symbol, double>> inputs);
+  
+  double evaluate(std::vector<values> inputs);
 
-  double differentiate(symbol varible, std::vector<std::pair<symbol, double>> inputs, double h);
+  double differentiate(symbol varible, std::vector<values> inputs, double h);
 
   bool variblesAreKnown = false;
   std::vector<symbol> varibles;

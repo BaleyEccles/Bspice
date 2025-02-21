@@ -9,6 +9,8 @@
 #include "function.h"
 #include "matrix.h"
 
+
+
 class function;
 class symbol;
 
@@ -26,7 +28,7 @@ class matrix {
   matrix<T> eliminateRow(int row);
   matrix<T> eliminateCol(int col);
   matrix<double> evaluate(double t);
-  matrix<double> evaluate(std::vector<std::pair<symbol, double>> inputs);
+  matrix<double> evaluate(std::vector<values> inputs);
   matrix<T> transpose();
   double norm(double Ln);
   double max();
@@ -38,6 +40,29 @@ class matrix {
   matrix<T> operator-(const matrix<T>& other);
 };
 
+template<typename T>
+matrix<T> valuesToMatrix(values vals, matrix<symbol> syms) {
+  matrix<T> output;
+  output.cols = syms.cols;
+  output.rows = syms.rows;
+  output.createData();
+  
+  for (auto& [sym, val] : vals) {
+    bool hasFoundValue = false;
+    for (int row = 0; row < syms.rows; row++) {
+      for (int col = 0; col < syms.cols; col++) {
+        if (sym == syms.data[row][col]) {
+          output.data[row][col] = val;
+          hasFoundValue = true;
+        }
+      }
+    }
+    if (!hasFoundValue) {
+      std::cerr << "ERROR: values and symbols are mismatched. The symbol: " << sym.name << " was not assigned a value." << std::endl;
+    }
+  }
+  return output;
+}
 
 template <typename T>
 void matrix<T>::createData() {
@@ -128,7 +153,7 @@ matrix<T> matrix<T>::eliminateCol(int col) {
 
 // For multivarible functions
 template<typename T>
-matrix<double> matrix<T>::evaluate(std::vector<std::pair<symbol, double>> inputs) {
+matrix<double> matrix<T>::evaluate(std::vector<values> inputs) {
   matrix<double> output = {std::vector<std::vector<double>>(rows, std::vector<double>(cols, 0.0)), cols, rows};
   for (int row = 0; row < output.rows; row++) {
     for (int col = 0; col < output.cols; col++) {

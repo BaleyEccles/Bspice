@@ -1,3 +1,4 @@
+#include "BMaths/matrix.h"
 #include "circuit.h"
 #include "fileParser.h"
 #include "tokenParser.h"
@@ -19,7 +20,7 @@ int main() {
     double& timeStep = circuit.timeStep;
     DifferentialAlgebraicEquation<double, double, function> DAE = {circuit.A, circuit.E, circuit.f, circuit.symbols};
     
-    auto output = DAESolveLinear(DAE, circuit.initalValues, timeStep, stopTime);
+    auto output = DAESolveLinear(DAE ,circuit.initalValues, timeStep, stopTime);
     postProcess("plotData.m", output.first, output.second, circuit.symbols, tokens);
   } else {
     auto circuit = createCircuitFromTokens<multiVaribleFunction, multiVaribleFunction, function>(tokens);
@@ -30,7 +31,15 @@ int main() {
     DifferentialAlgebraicEquation<multiVaribleFunction, multiVaribleFunction, function> DAE = {circuit.A, circuit.E, circuit.f, circuit.symbols};
 
     auto output = DAESolveNonLinear(DAE, circuit.initalValues, timeStep, stopTime);
-    postProcess("plotData.m", output.first, output.second, circuit.symbols, tokens);
+    
+    std::vector<matrix<double>> outputData;
+    outputData.reserve(output.second.size());
+    for (auto& val : output.second) {
+      matrix<double> currentData = valuesToMatrix<double>(val, DAE.syms);
+      outputData.push_back(currentData);
+    }
+    
+    postProcess("plotData.m", output.first, outputData, circuit.symbols, tokens);
   }
 
   return 0;

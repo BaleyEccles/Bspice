@@ -12,7 +12,7 @@ struct AlgebraicEquation {
 
 matrix<double> NewtonsMethod(matrix<double> A, matrix<double> f, matrix<double> guess);
 
-matrix<double> NewtonsMethod(matrix<multiVaribleFunction> A, matrix<symbol> syms, matrix<double> f, matrix<double> guess);
+matrix<double> NewtonsMethod(matrix<multiVaribleFunction> A, matrix<double> f, values guess);
 
-std::vector<std::pair<symbol, double>> getInputs(matrix<symbol> syms, matrix<double> inputs);
-matrix<double> getJacobian(matrix<multiVaribleFunction> funcMatrix, std::vector<std::pair<symbol, double>> inputs, double h);
+std::vector<values> getInputs(matrix<symbol> syms, matrix<double> inputs);
+matrix<double> getJacobian(matrix<multiVaribleFunction> funcMatrix, std::vector<values> inputs, double h);

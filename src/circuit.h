@@ -24,7 +24,7 @@ public:
   matrix<T1> A;
   matrix<T2> E;
   matrix<T3> f;
-  matrix<double> initalValues;
+  values initalValues;
   matrix<symbol> symbols;
   bool isLinear = true;
 
@@ -34,6 +34,7 @@ private:
   void generateMatricesLinear();
   void generateMatricesNonLinear();
   void generateSymbols();
+  void generateInitalValues();
   void preAllocateMatrixDataLinear();
   void preAllocateMatrixDataNonLinear();
   
@@ -60,6 +61,7 @@ void Circuit<T1, T2, T3>::addNode(Node *node) {
 template<typename T1, typename T2, typename T3>
 void Circuit<T1, T2, T3>::calculate() {
   generateSymbols();
+  generateInitalValues();
   
   generateComponentConections();
   if (isLinear) {
@@ -434,6 +436,13 @@ int Circuit<T1, T2, T3>::findNodeLocationFromSymbol(std::string symName) {
 }
 
 template<typename T1, typename T2, typename T3>
+void Circuit<T1, T2, T3>::generateInitalValues() {
+  for (int row = 0; row < symbols.rows; row++) {
+    initalValues[symbols.data[row][0]] = 0.0;
+  }
+}
+  
+template<typename T1, typename T2, typename T3>
 void Circuit<T1, T2, T3>::generateSymbols() {
   bool hasGround = false;
   symbols.rows = 0;
@@ -507,9 +516,7 @@ void Circuit<T1, T2, T3>::preAllocateMatrixDataNonLinear() {
   f.cols = 1;
   f.createData();
   
-  initalValues.rows = matrixSize;
-  initalValues.cols = 1;
-  initalValues.createData();
+  
 }
 
 template<typename T1, typename T2, typename T3>
@@ -527,9 +534,7 @@ void Circuit<T1, T2, T3>::preAllocateMatrixDataLinear() {
   f.cols = 1;
   f.createData();
   
-  initalValues.rows = matrixSize;
-  initalValues.cols = 1;
-  initalValues.createData();
+
 }
 
 // This defines the current direction

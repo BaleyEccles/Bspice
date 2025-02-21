@@ -34,15 +34,15 @@ matrix<double> NewtonsMethod(matrix<multiVaribleFunction> A, matrix<symbol> syms
 };
 
 
-std::vector<std::pair<symbol, double>> getInputs(matrix<symbol> syms, matrix<double> inputs) {
-  std::vector<std::pair<symbol, double>> output;
+std::vector<values> getInputs(matrix<symbol> syms, matrix<double> inputs) {
+  std::vector<values> output;
   for (int row = 0; row < syms.rows; row++) {
     output.push_back(std::make_pair(syms.data[row][0], inputs.data[row][0]));
   }
   return output;
 }
 
-matrix<double> getJacobian(matrix<multiVaribleFunction> funcMatrix, std::vector<std::pair<symbol, double>> inputs, double h) {
+matrix<double> getJacobian(matrix<multiVaribleFunction> funcMatrix, std::vector<values> inputs, double h) {
   if (funcMatrix.cols != 1) {
     std::cerr << "ERROR: function matrix must have one column" << std::endl;
   }

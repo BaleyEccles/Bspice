@@ -24,15 +24,43 @@ std::vector<int> getDEColIdx(matrix<double> E);
 matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f, matrix<double> yn, double timeStep);
 
 
-
+// Solve a DAE of the form F = f1
+// where F is a vector of multivarible functions that do not contain derivatives
+// and f is a vector of constants, or a vector of single varible functions
+// AND E = f2
+// where E is a vector of multivarible functions that contains derivatives
+// and f is a vector of constants, or a vector of single varible functions
 template<typename T>
-std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolveNonLinear(DifferentialAlgebraicEquation<multiVaribleFunction, multiVaribleFunction, T> DAE, matrix<double> initalGuess, double timeStep, double timeEnd) {
-  std::cerr << "TODO: Started Non Linear Solve" << std::endl;
+std::pair<std::vector<double>, std::vector<values>> DAESolveNonLinear(DifferentialAlgebraicEquation<multiVaribleFunction, multiVaribleFunction, T> DAE, values initalGuess, double timeStep, double timeEnd) {
+  std::vector<values> results;
+  std::vector<double> time;
+  int steps = ceil(timeEnd/timeStep);
+  auto& E = DAE.E;
+  auto& A = DAE.A;
+  auto& f = DAE.f;
+  auto& syms = DAE.syms;
+
+  for (int i = 0; i < steps; i++) {
+    double time = i * timeStep - timeStep;
+    matrix<double> currentStep;
+    if (results.size() == 0) {
+      currentStep = valuesToMatrix(initalGuess, syms);
+    } else {
+      currentStep = valuesToMatrix(results[results.size() - 1], syms);
+    }
+    auto EEval = E.evaluate(currentStep);
+    auto fEval = f.evaluate(time);
+    // DE stuff
+
+    auto xn1 = NewtonsMethod(E, f.evaluate(time), currentStep);
+    
+  }
 }
 
 
+
 template<typename T>
-std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolveLinear(DifferentialAlgebraicEquation<double, double, T> DAE, matrix<double> initalGuess, double timeStep, double timeEnd) {
+std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolveLinear(DifferentialAlgebraicEquation<double, double, T> DAE, values initalGuess, double timeStep, double timeEnd) {x
   std::vector<matrix<double>> results;
   std::vector<double> time;
   int steps = ceil(timeEnd/timeStep);
@@ -44,12 +72,13 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolveLinear(Diffe
   auto AEIdx = getAlgebraicEquationIdxFromDAE(DAE);
   auto AEs = getAlgebraicEquationsFromDAE(DAE);
   //AEs.A.print("A");
+  auto& syms = DAE.syms;
     
   for (int i = 0; i < steps; i++) {
     double tn = i * timeStep - timeStep;
     matrix<double> yn;
     if (results.size() == 0) {
-      yn = initalGuess;
+      yn = valuesToMatrix(initalGuess, syms);
     } else {
       yn = results[results.size() - 1];
     }

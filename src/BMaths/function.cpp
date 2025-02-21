@@ -24,7 +24,7 @@ function createConstantFunction(double val, symbol sym) {
 }
 
 
-double multiVaribleFunction::evaluate(std::vector<std::pair<symbol, double>> inputs) {
+double multiVaribleFunction::evaluate(std::vector<values> inputs) {
   double output = 0.0;
   if (brachOperation == nullptr && isBranch) {
     std::cerr << "ERROR: Branch has no operation defined." << std::endl;
@@ -43,7 +43,7 @@ double multiVaribleFunction::evaluate(std::vector<std::pair<symbol, double>> inp
   return output;
 };
 
-double multiVaribleFunction::differentiate(symbol varible, std::vector<std::pair<symbol, double>> inputs, double h) {
+double multiVaribleFunction::differentiate(symbol varible, std::vector<values> inputs, double h) {
   double fx = this->evaluate(inputs);
   int varIdx = 0;
   auto heInputs = inputs;
