@@ -14,8 +14,8 @@ class FourierTransform {
 public:
   FourierTransform(std::vector<double> time, matrix<T> inputData) {
     if (inputData.rows != 1) { std::cerr << "ERROR: Rows of inputData must be 1." << std::endl; }
-    //fft(time, inputData);
-    DFT(time, inputData);
+    fft(time, inputData);
+    //DFT(time, inputData);
     magnitude();
     phase();
   };
