@@ -30,15 +30,15 @@ public:
     
     double fs = 1/time[time.size() - 1];
     frequency.rows = 1;
-    frequency.cols = N/2;
+    frequency.cols = N;
     frequency.createData();
     
     transformData.data[0] = ditfft2(transformData.data[0], N, fs);
-    
     transformData.data[0].resize(N/2);
-    transformData.cols = N/2;
-    frequency.data[0].resize(N/2);
-    frequency.cols = N/2;
+    //transformData.cols = N;
+    std::cout << transformData.data[0].size() << std::endl;
+    std::cout << frequency.data[0].size() << std::endl;
+    
   }
   
   std::vector<complexNumber<double>> ditfft2(std::vector<complexNumber<double>>& x, int N, double fs) {
@@ -62,7 +62,8 @@ public:
       auto w = makeComplexNumberFromPolar<T>(1.0, 2*M_PI*k/N);
       X[k] = even[k] + w*odd[k];
       X[k+N/2] = even[k] - w*odd[k];
-      frequency.data[0][k] = k*fs/N;
+      frequency.data[0][k] = k*fs;
+      frequency.data[0][k+N/2] = k*fs + fs*N/2;
     }
 
     return X;
@@ -77,16 +78,18 @@ public:
     frequency.rows = 1;
     frequency.cols = N/2;
     frequency.createData();
+    
     transformData.rows = 1;
     transformData.cols = N/2;
     transformData.createData();
+    
     for (int k = 0; k < N/2; k++) {
       for (int n = 0; n < N; n++) {
         auto data = inputData.data[0][n];
         double angle = -2*M_PI*k*n/N;
         transformData.data[0][k] += (data*makeComplexNumberFromPolar<double>(1, angle));
       }
-      frequency.data[0].push_back(k*fs);
+      frequency.data[0][k] = k*fs;
 
     }
   };
