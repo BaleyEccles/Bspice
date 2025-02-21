@@ -1,7 +1,7 @@
 #include "algebraicEquationSolver.h"
 // solve matrix equtations of the form A x = f
-matrix<double> NewtonsMethod(matrix<double> A, matrix<double> f,
-                             matrix<double> guess) {
+template <std::size_t colsT, std::size_t rowsT>
+matrix<double, colsT, rowsT> NewtonsMethod(matrix<double, colsT, rowsT> A, matrix<double, colsT, rowsT> f, matrix<double, colsT, rowsT> guess) {
   
   // Jacobian
   // For now we are only dealing with first order polynomials

@@ -1,5 +1,5 @@
 #pragma once
-#include <vector>
+#include <array>
 #include <string>
 #include <iostream>
 #include <algorithm>
@@ -12,52 +12,58 @@
 class function;
 class symbol;
 
-template <typename T>
+template <typename T, std::size_t colsT, std::size_t rowsT>
 class matrix {
  public:
-  std::vector<std::vector<T>> data;
-  int cols, rows;
+  matrix();
+  std::array<std::array<T, colsT>, rowsT> data;
+  std::size_t cols, rows;
   void createData();  
   void print(const std::string name = "") const;
   
-  matrix<T> scale(double scale);
-  matrix<T> getColumn(int col);
-  matrix<T> getRow(int row);
-  matrix<T> eliminateRow(int row);
-  matrix<T> eliminateCol(int col);
-  matrix<double> evaluate(double t);
-  matrix<double> evaluate(std::vector<std::pair<symbol, double>> inputs);
-  matrix<T> transpose();
+  matrix<T, colsT, rowsT> scale(double scale);
+  matrix<T, colsT, rowsT> getColumn(int col);
+  matrix<T, colsT, rowsT> getRow(int row);
+  matrix<T, colsT, rowsT> eliminateRow(int row);
+  matrix<T, colsT, rowsT> eliminateCol(int col);
+  matrix<double, colsT, rowsT> evaluate(double t);
+  matrix<double, colsT, rowsT> evaluate(std::vector<std::pair<symbol, double>> inputs);
+  matrix<T, colsT, rowsT> transpose();
   double norm(double Ln);
   double max();
-  matrix<T> invert();
+  matrix<T, colsT, rowsT> invert();
   
   template<typename U>
-  matrix<T> operator*(const matrix<U>& other);
-  matrix<T> operator+(const matrix<T>& other);
-  matrix<T> operator-(const matrix<T>& other);
+  matrix<T, colsT, rowsT> operator*(const matrix<U, rowsT, colsT>& other);
+  matrix<T, colsT, rowsT> operator+(const matrix<T, colsT, rowsT>& other);
+  matrix<T, colsT, rowsT> operator-(const matrix<T, colsT, rowsT>& other);
 };
 
-
-template <typename T>
-void matrix<T>::createData() {
-  if constexpr (std::is_arithmetic<T>::value) {
-    data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, 0));
-    
-  } else if constexpr (std::is_same<T, symbol>::value) {
-    data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, symbol("")));
-    
-  } else if constexpr (std::is_same<T, function>::value) {
-    function f0 = createConstantFunction(0.0);
-    data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, f0));
-    
-  } else if constexpr (std::is_same<T, complexNumber<double>>::value) {
-    data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, complexNumber<double>(0.0, 0.0)));
-  }
+template <typename T, std::size_t colsT, std::size_t rowsT>
+matrix<T, colsT, rowsT>::matrix()
+  : cols(colsT), rows(rowsT) {
+  createData();
 }
 
-template <typename T>
-void matrix<T>::print(const std::string name) const {
+//template <typename T, std::size_t colsT, std::size_t rowsT> TODO
+//void matrix<T, colsT, rowsT>::createData() {
+//  if constexpr (std::is_arithmetic<T>::value) {
+//    data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, 0));
+//    
+//  } else if constexpr (std::is_same<T, symbol>::value) {
+//    data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, symbol("")));
+//    
+//  } else if constexpr (std::is_same<T, function>::value) {
+//    function f0 = createConstantFunction(0.0);
+//    data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, f0));
+//    
+//  } else if constexpr (std::is_same<T, complexNumber<double>>::value) {
+//    data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, complexNumber<double>(0.0, 0.0)));
+//  }
+//}
+
+template <typename T, std::size_t colsT, std::size_t rowsT>
+void matrix<T, colsT, rowsT>::print(const std::string name) const {
   if (name != "") std::cout << name << std::endl;
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
@@ -76,60 +82,58 @@ void matrix<T>::print(const std::string name) const {
   std::cout << "\n";
 }
 
-template <typename T>
-matrix<T> matrix<T>::scale(double scale) {
-  std::vector<std::vector<T>> outputData(rows, std::vector<T>(cols, 0));
+template <typename T, std::size_t colsT, std::size_t rowsT>
+matrix<T, colsT, rowsT> matrix<T, colsT, rowsT>::scale(double scale) {
+  matrix<T, colsT, rowsT> output;
   for (int row = 0; row < rows; ++row) {
     for (int col = 0; col < cols; ++col) {
-      outputData[row][col] = scale*data[row][col];
+      output.data[row][col] = scale*data[row][col];
     }
   }
-  matrix<T> output = {
-    outputData,
-    cols, rows
-  };
+
   return output;
 }
 
-template <typename T>
-matrix<T> matrix<T>::getColumn(int col) {
+template <typename T, std::size_t colsT, std::size_t rowsT>
+matrix<T, colsT, rowsT> matrix<T, colsT, rowsT>::getColumn(int col) {
   std::vector<std::vector<T>> output;
   output.reserve(rows);
   for (int i = 0; i < rows; i++) {
     output.push_back({data[i][col]});
   }
-  return matrix<T>{output, 1, rows};
+  return matrix<T, colsT, rowsT>{output, 1, rows};
 }
 
-template <typename T>
-matrix<T> matrix<T>::getRow(int row) {
-  std::vector<std::vector<T>> output;
-  output.reserve(cols);
+template <typename T, std::size_t colsT, std::size_t rowsT>
+matrix<T, colsT, rowsT> matrix<T, colsT, rowsT>::getRow(int row) {
+  matrix<T, colsT, rowsT> output;
+  
   for (int i = 0; i < cols; i++) {
-    output.push_back({data[row][i]});
+    output.data[i][0] = (data[row][i]);
   }
-  return matrix<T>{output, 1, cols};
+
+  return output;
 }
 
-template <typename T>
-matrix<T> matrix<T>::eliminateRow(int row) {
-  data.erase(data.begin() + row);
+template <typename T, std::size_t colsT, std::size_t rowsT>
+matrix<T, colsT, rowsT> matrix<T, colsT, rowsT>::eliminateRow(int row) {
+  //data.erase(data.begin() + row); TODO
   rows -= 1;
   return *this;
 }
-template <typename T>
-matrix<T> matrix<T>::eliminateCol(int col) {
+template <typename T, std::size_t colsT, std::size_t rowsT>
+matrix<T, colsT, rowsT> matrix<T, colsT, rowsT>::eliminateCol(int col) {
   for (int row = 0; row < rows; row++) {
-    data[row].erase(data[row].begin() + col);
+    //data[row].erase(data[row].begin() + col); TODO
   }
   cols -= 1;
   return *this;
 }
 
 // For multivarible functions
-template<typename T>
-matrix<double> matrix<T>::evaluate(std::vector<std::pair<symbol, double>> inputs) {
-  matrix<double> output = {std::vector<std::vector<double>>(rows, std::vector<double>(cols, 0.0)), cols, rows};
+template <typename T, std::size_t colsT, std::size_t rowsT>
+matrix<double, colsT, rowsT> matrix<T, colsT, rowsT>::evaluate(std::vector<std::pair<symbol, double>> inputs) {
+  matrix<double, colsT, rowsT> output;
   for (int row = 0; row < output.rows; row++) {
     for (int col = 0; col < output.cols; col++) {
       output.data[row][col] = data[row][col].evaluate(inputs);
@@ -139,12 +143,12 @@ matrix<double> matrix<T>::evaluate(std::vector<std::pair<symbol, double>> inputs
   std::cerr << "ERROR: Unreachable" << std::endl;
 }
 
-template<typename T>
-matrix<double> matrix<T>::evaluate(double t) {
+template <typename T, std::size_t colsT, std::size_t rowsT>
+matrix<double, colsT, rowsT> matrix<T, colsT, rowsT>::evaluate(double t) {
   if constexpr (std::is_arithmetic<T>::value) {
-    return &this;
+    return *this;
   } else if constexpr (std::is_same<T, function>::value) {
-    matrix<double> output = {std::vector<std::vector<double>>(rows, std::vector<double>(cols, 0.0)), cols, rows};
+    matrix<double, colsT, rowsT> output;
     for (int row = 0; row < output.rows; row++) {
       for (int col = 0; col < output.cols; col++) {
         output.data[row][col] = data[row][col].evaluate(t);
@@ -156,23 +160,20 @@ matrix<double> matrix<T>::evaluate(double t) {
 }
 
 
-template <typename T>
-matrix<T> matrix<T>::transpose() {
-  std::vector<std::vector<T>> outputVec(cols, std::vector<T>(rows));
+template <typename T, std::size_t colsT, std::size_t rowsT>
+matrix<T, colsT, rowsT> matrix<T, colsT, rowsT>::transpose() {
+  matrix<T, colsT, rowsT> output;
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < cols; col++) {
-      outputVec[col][row] = data[row][col];
+      output.data[col][row] = data[row][col];
     }
   }
-  matrix<T> output = {
-    outputVec,
-    rows, cols
-  };
+
   return output;
 };
 
-template <typename T>
-double matrix<T>::norm(double Ln) {
+template <typename T, std::size_t colsT, std::size_t rowsT>
+double matrix<T, colsT, rowsT>::norm(double Ln) {
   if (cols > 1) {
     std::cerr << "TODO: Norm with more than one col is not implemented" << std::endl;
   }
@@ -184,8 +185,8 @@ double matrix<T>::norm(double Ln) {
   return norm;
 };
 
-template <typename T>
-double matrix<T>::max() {
+template <typename T, std::size_t colsT, std::size_t rowsT>
+double matrix<T, colsT, rowsT>::max() {
   double max = 0.0;
   for (int row = 0; row < rows; ++row) {
     for (int col = 0; col < cols; ++col) {
@@ -197,130 +198,118 @@ double matrix<T>::max() {
   return max;
 }
 
-template <typename T>
-matrix<T> matrix<T>::invert() {
-  std::vector<std::vector<double>> inverse = std::vector<std::vector<double>>(rows, std::vector<double>(rows, 0));
-    std::vector<std::vector<double>> augmented(rows, std::vector<double>(2 * rows, 0));
+template <typename T, std::size_t colsT, std::size_t rowsT>
+matrix<T, colsT, rowsT> matrix<T, colsT, rowsT>::invert() {
+  matrix<double, colsT, rowsT> inverse;
+  matrix<double, colsT, rowsT> augmented;
 
     // Create the augmented matrix [input | I]
     for (int i = 0; i < rows; i++) {
       for (int j = 0; j < rows; j++) {
-        augmented[i][j] = data[i][j];
+        augmented.data[i][j] = data[i][j];
       }
-      augmented[i][i + rows] = 1; // Identity matrix
+      augmented.data[i][i + rows] = 1; // Identity matrix
     }
 
     // Apply Gaussian elimination
     for (int i = 0; i < rows; i++) {
       // Search for maximum in this column
-      double maxEl = abs(augmented[i][i]);
+      double maxEl = abs(augmented.data[i][i]);
       int maxRow = i;
       for (int k = i + 1; k < rows; k++) {
-        if (abs(augmented[k][i]) > maxEl) {
-          maxEl = abs(augmented[k][i]);
+        if (abs(augmented.data[k][i]) > maxEl) {
+          maxEl = abs(augmented.data[k][i]);
           maxRow = k;
         }
       }
 
       // Swap maximum row with current row
       for (int k = i; k < 2 * rows; k++) {
-        std::swap(augmented[maxRow][k], augmented[i][k]);
+        std::swap(augmented.data[maxRow][k], augmented.data[i][k]);
       }
 
       // Make the diagonal contain all 1s
-      double diag = augmented[i][i];
+      double diag = augmented.data[i][i];
       if (diag == 0) {
         print();
         std::cerr << "ERROR: matrix is singular" << std::endl;
       }
       for (int k = 0; k < 2 * rows; k++) {
-        augmented[i][k] /= diag;
+        augmented.data[i][k] /= diag;
       }
 
       // Make the other rows contain 0s in this column
       for (int k = 0; k < rows; k++) {
         if (k != i) {
-          double factor = augmented[k][i];
+          double factor = augmented.data[k][i];
           for (int j = 0; j < 2 * rows; j++) {
-            augmented[k][j] -= factor * augmented[i][j];
+            augmented.data[k][j] -= factor * augmented.data[i][j];
           }
         }
       }
     }
 
-    // Extract the inverse matrix from the augmented matrix
+    // Extract the inverse matrix from the augmented.data matrix
     for (int i = 0; i < rows; i++) {
       for (int j = 0; j < rows; j++) {
-        inverse[i][j] = augmented[i][j + rows];
+        inverse.data[i][j] = augmented.data[i][j + rows];
       }
     }
-    matrix<T> inv = {inverse, cols, rows};
-    return inv;
+    return inverse;
   }
 
 
-template<typename T>
-template<typename U>
-matrix<T> matrix<T>::operator*(const matrix<U>& other) {
+template <typename T, std::size_t colsT, std::size_t rowsT>
+template <typename U>
+matrix<T, colsT, rowsT> matrix<T, colsT, rowsT>::operator*(const matrix<U, rowsT, colsT>& other) {
   if (this->cols != other.rows) {
     std::cerr << "ERROR: For multiply cols of A must be equal to rows of B" << std::endl;
     this->print("A:");
     other.print("B:");
   }
-  std::vector<std::vector<T>> outputData(this->rows, std::vector<T>(other.cols));
+  matrix<T, colsT, rowsT> output;//(this->rows, std::vector<T>(other.cols));
 
 
   for (int row = 0; row < this->rows; ++row) {
     for (int col = 0; col < other.cols; ++col) {
       for (int k = 0; k < this->cols; ++k) {
-        outputData[row][col] = outputData[row][col] + (this->data[row][k] * other.data[k][col]);
+        output.data[row][col] = output.data[row][col] + (this->data[row][k] * other.data[k][col]);
       }
     }
   }
-  matrix<T> output = {
-    outputData,
-    other.cols, this->rows
-  };
 
   return output;
 }
 
 
-template<typename T>
-matrix<T> matrix<T>::operator-(const matrix<T>& other) {
+template <typename T, std::size_t colsT, std::size_t rowsT>
+matrix<T, colsT, rowsT> matrix<T, colsT, rowsT>::operator-(const matrix<T, colsT, rowsT>& other) {
   if (this->cols != other.cols || this->rows != other.rows) {
     std::cerr << "ERROR: Mismatched matrix sizes" << std::endl;
     this->print("A");
     other.print("B");
   }
-  std::vector<std::vector<T>> outputData(this->rows, std::vector<T>(this->cols, 0));
+  matrix<T, colsT, rowsT> output;
   for (int row = 0; row < this->rows; ++row) {
     for (int col = 0; col < this->cols; ++col) {
-      outputData[row][col] = this->data[row][col] - other.data[row][col];
+      output.data[row][col] = this->data[row][col] - other.data[row][col];
     }
   }
-  matrix<T> output = {
-    outputData,
-    this->cols, this->rows
-  };
+
   return output;
 }
 
 
 
-template<typename T>
-matrix<T> matrix<T>::operator+(const matrix<T>& other) {
+template <typename T, std::size_t colsT, std::size_t rowsT>
+matrix<T, colsT, rowsT> matrix<T, colsT, rowsT>::operator+(const matrix<T, colsT, rowsT>& other) {
   if (this->cols != other.cols || this->rows != other.rows) { std::cerr << "ERROR: Mismatched matrix sizes" << std::endl; }
-  std::vector<std::vector<T>> outputData(this->rows, std::vector<T>(this->cols, 0));
+  matrix<T, colsT, rowsT> output;
   for (int row = 0; row < this->rows; ++row) {
     for (int col = 0; col < this->cols; ++col) {
-      outputData[row][col] = this->data[row][col] + other.data[row][col];
+      output.data[row][col] = this->data[row][col] + other.data[row][col];
     }
   }
-  matrix<T> output = {
-    outputData,
-    this->cols, this->rows
-  };
   return output;
 }
 

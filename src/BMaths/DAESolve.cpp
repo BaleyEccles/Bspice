@@ -2,14 +2,15 @@
 
 
 // Solve a DAE of the form Ax + Ex' = f
-std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve(matrix<double> A, matrix<double> E, matrix<double> f, matrix<double> initalGuess, double timeStep, double timeEnd) {
-  std::vector<matrix<double>> results;
+template <std::size_t colsT, std::size_t rowsT>
+std::pair<std::vector<double>, std::vector<matrix<double, colsT, rowsT>>> DAESolve(matrix<double, colsT, rowsT> A, matrix<double, colsT, rowsT> E, matrix<double, 1, rowsT> f, matrix<double, 1, rowsT> initalGuess, double timeStep, double timeEnd) {
+  std::vector<matrix<double, colsT, rowsT>> results;
   std::vector<double> time;
   int steps = ceil(timeEnd/timeStep);
   results.reserve(steps);
   for (int i = 0; i < steps; i++) {
     double tn = i * timeStep - timeStep;
-    matrix<double> yn;
+    matrix<double, colsT, rowsT> yn;
     if (results.size() == 0) {
       yn = initalGuess;
     } else {
@@ -20,19 +21,21 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolve(matrix<doub
     results.push_back(nextStep);
     time.push_back(tn);
   };
-  auto output = std::pair<std::vector<double>, std::vector<matrix<double>>>{time, results};
+  auto output = std::pair<std::vector<double>, std::vector<matrix<double, colsT, rowsT>>>{time, results};
   return output;
 }
 
-matrix<double> getRowsFromIdx(matrix<double> input, std::vector<int>& idx) {
-  matrix<double> output = {std::vector<std::vector<double>>{}, input.cols, (int)idx.size()};
+template <std::size_t colsT, std::size_t rowsT>
+matrix<double, colsT, rowsT> getRowsFromIdx(matrix<double, colsT, rowsT> input, std::vector<int>& idx) {
+  matrix<double, colsT, rowsT> output = {std::vector<std::vector<double>>{}, input.cols, (int)idx.size()};
   for (auto& row : idx) {
     output.data.push_back(input.getRow(row).transpose().data[0]);
   }
   return output;
 }
 
-std::vector<int> getDEColIdx(matrix<double> E) {
+template <std::size_t colsT, std::size_t rowsT>
+std::vector<int> getDEColIdx(matrix<double, colsT, rowsT> E) {
   std::vector<int> DEColIdx;
   for (int col = 0; col < E.cols; col++) {
     bool isZero = false;
@@ -48,7 +51,8 @@ std::vector<int> getDEColIdx(matrix<double> E) {
   return DEColIdx;
 }
 
-matrix<double> eliminateColsFromIdx(matrix<double> input, std::vector<int>& idx) {
+template <std::size_t colsT, std::size_t rowsT>
+matrix<double, colsT, rowsT> eliminateColsFromIdx(matrix<double, colsT, rowsT> input, std::vector<int>& idx) {
   int i = 0;
   for (auto col : idx) {
     input.eliminateCol(col - i);
@@ -56,9 +60,9 @@ matrix<double> eliminateColsFromIdx(matrix<double> input, std::vector<int>& idx)
   }
   return input;
 }
-
-matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f,
-                          matrix<double> yn, double timeStep) {
+template <std::size_t colsT, std::size_t rowsT>
+matrix<double, colsT, rowsT> DAEStepper(matrix<double, colsT, rowsT> A, matrix<double, colsT, rowsT> E, matrix<double, colsT, rowsT> f,
+                                  matrix<double, colsT, rowsT> yn, double timeStep) {
   std::vector<int> DERowIdx;
 
   for (int row = 0; row < E.rows; ++row) {
@@ -87,10 +91,10 @@ matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f,
     }
   }
   
-  matrix<double> EDE = {std::vector<std::vector<double>>{}, E.cols, (int)DERowIdx.size()};
-  matrix<double> ADE = {std::vector<std::vector<double>>{}, A.cols, (int)DERowIdx.size()};
-  matrix<double> fDE = {std::vector<std::vector<double>>{}, f.cols, (int)DERowIdx.size()};
-  matrix<double> ynDE = {std::vector<std::vector<double>>{}, yn.cols, (int)DERowIdx.size()};
+  matrix<double, colsT, rowsT> EDE = {std::vector<std::vector<double>>{}, E.cols, (int)DERowIdx.size()};
+  matrix<double, colsT, rowsT> ADE = {std::vector<std::vector<double>>{}, A.cols, (int)DERowIdx.size()};
+  matrix<double, colsT, rowsT> fDE = {std::vector<std::vector<double>>{}, f.cols, (int)DERowIdx.size()};
+  matrix<double, colsT, rowsT> ynDE = {std::vector<std::vector<double>>{}, yn.cols, (int)DERowIdx.size()};
 
   int i = 0;
   for (auto row : DERowIdx) {
@@ -122,7 +126,7 @@ matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f,
   auto xn1 = ((EDE.invert() * (fDE -(ADE * yn))).scale(timeStep) + ynDE);
   //xn1.print();
 
-  matrix<double> xn1New = {std::vector<std::vector<double>>(f.rows, std::vector<double>(f.cols, 0.0)), f.cols, f.rows};
+  matrix<double, colsT, rowsT> xn1New = {std::vector<std::vector<double>>(f.rows, std::vector<double>(f.cols, 0.0)), f.cols, f.rows};
   i = 0;
   for (auto row : DERowIdx) {
     xn1New.data[row][0] = xn1.data[i][0];
@@ -130,7 +134,7 @@ matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f,
   }
   
   // AE Equations
-  matrix<double> An1 = A;
+  matrix<double, colsT, rowsT> An1 = A;
   i = 0;
   for (auto row : DERowIdx) {
     An1.eliminateRow(row - i);
@@ -175,7 +179,7 @@ matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f,
 
   auto AEsols = NewtonsMethod(An, newf, NewtonGuess);
 
-  matrix<double> AEsolsNew = {std::vector<std::vector<double>>(
+  matrix<double, colsT, rowsT> AEsolsNew = {std::vector<std::vector<double>>(
                                                                f.rows, std::vector<double>(f.cols, 0.0)),
                               f.cols, f.rows};
 

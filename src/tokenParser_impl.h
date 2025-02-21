@@ -5,7 +5,8 @@
 
 // data is in a weird format
 // it is a vector of matrix that is similar to syms
-postProcess::postProcess(const std::string& octaveFileName, std::vector<double> &time, std::vector<matrix<double>> &data, matrix<symbol> &syms, std::vector<std::shared_ptr<token>> &tokens)
+template<std::size_t colsT, std::size_t rowsT>
+postProcess<colsT, rowsT>::postProcess(const std::string& octaveFileName, std::vector<double> &time, std::vector<matrix<double, 1, rowsT>> &data, matrix<symbol, 1, rowsT> &syms, std::vector<std::shared_ptr<token>> &tokens)
   : fileName(octaveFileName), time(time), data(data), syms(syms), tokens(tokens) {
 
   file.open(fileName);
@@ -19,10 +20,12 @@ postProcess::postProcess(const std::string& octaveFileName, std::vector<double> 
   file.close();
 };
 
-postProcess::~postProcess() {
+template<std::size_t colsT, std::size_t rowsT>
+postProcess<colsT, rowsT>::~postProcess() {
 }
 
-void postProcess::fillInDataTokens() {
+template<std::size_t colsT, std::size_t rowsT>
+void postProcess<colsT, rowsT>::fillInDataTokens() {
   for (auto& token : tokens) {
     switch (token->type) {
     case token::NODE:{
@@ -70,7 +73,8 @@ void postProcess::fillInDataTokens() {
   }
 };
 
-int postProcess::findIdxFromName(std::string name) {
+template<std::size_t colsT, std::size_t rowsT>
+int postProcess<colsT, rowsT>::findIdxFromName(std::string name) {
   for (int row = 0; row < syms.rows; row++) {
     for (int col = 0; col < syms.cols; col++) {
       if (syms.data[row][col].name == name) {
@@ -81,8 +85,9 @@ int postProcess::findIdxFromName(std::string name) {
   //std::cerr << "ERROR: Could not find sym idx from name: " << name << std::endl;
   return -1;
 }
-  
-void postProcess::addOctaveVarible(const std::string &name, std::vector<double> plotData) {
+
+template<std::size_t colsT, std::size_t rowsT>
+void postProcess<colsT, rowsT>::addOctaveVarible(const std::string &name, std::vector<double> plotData) {
   file << (name + " = [");
   //std::cout << plotData.size() << std::endl;
   for (int i = 0; i < plotData.size(); i++) {
@@ -91,7 +96,8 @@ void postProcess::addOctaveVarible(const std::string &name, std::vector<double> 
   file << ("];\n");
 };
 
-void postProcess::addPlot(const std::string &name, std::vector<double> plotData) {
+template<std::size_t colsT, std::size_t rowsT>
+void postProcess<colsT, rowsT>::addPlot(const std::string &name, std::vector<double> plotData) {
   //std::cout << name << " " << plotData.size() << std::endl;
   addOctaveVarible(name, plotData);
   file << ("figure();\n");
@@ -100,7 +106,8 @@ void postProcess::addPlot(const std::string &name, std::vector<double> plotData)
   file << ("ylabel(\"" + name + "\");\n");
 };
 
-void postProcess::addFourierPlot(const std::string &name, std::vector<double> frequencyData, std::vector<double> magnitudeData) {// TODO: Deal with phase
+template<std::size_t colsT, std::size_t rowsT>
+void postProcess<colsT, rowsT>::addFourierPlot(const std::string &name, std::vector<double> frequencyData, std::vector<double> magnitudeData) {// TODO: Deal with phase
   const std::string fName = "frequency_" + name;
   const std::string mName = "magnitude_" + name;
   const std::string pName = "phase_" + name;
@@ -112,7 +119,8 @@ void postProcess::addFourierPlot(const std::string &name, std::vector<double> fr
   file << ("ylabel(\"" + mName + "\");\n");
 };
 
-void postProcess::createOctavePlotFileFromTokens() {
+template<std::size_t colsT, std::size_t rowsT>
+void postProcess<colsT, rowsT>::createOctavePlotFileFromTokens() {
   //file << "graphics_toolkit(\"gnuplot\")\n";
   file << "set(0, 'DefaultTextFontSize', 25);";
   file << "set(0, 'DefaultAxesFontSize', 25);";
@@ -140,7 +148,7 @@ void postProcess::createOctavePlotFileFromTokens() {
       bool isValidPlot = false;
       auto inputDataT = dynamic_cast<dataToken *>(fourierT->inputDataToken.get());      
       auto outputDataT = dynamic_cast<dataToken *>(fourierT->outputDataToken.get());      
-      matrix<double> toTransform = {{inputDataT->data}, (int)inputDataT->data[0].size(), 1};
+      matrix<double, colsT, rowsT> toTransform = {{inputDataT->data}, (int)inputDataT->data[0].size(), 1};
       FourierTransform dft(time, toTransform);
       addFourierPlot(outputDataT->name, dft.frequency.data[0], dft.magnitudes.data[0]);
       outputDataT->addData(dft.frequency.data[0]);
@@ -182,7 +190,8 @@ void postProcess::createOctavePlotFileFromTokens() {
 
 };
 
-std::vector<double> postProcess::calculateCurrent(std::shared_ptr<token> t) {
+template<std::size_t colsT, std::size_t rowsT>
+std::vector<double> postProcess<colsT, rowsT>::calculateCurrent(std::shared_ptr<token> t) {
   auto componentT = dynamic_cast<componentToken *>(t.get());
   switch (componentT->componentType) {
   case Component::RESISTOR: { // use I = V/R
@@ -247,7 +256,8 @@ std::vector<double> postProcess::calculateCurrent(std::shared_ptr<token> t) {
   return std::vector<double>();
 }
 
-std::vector<double> postProcess::calculateSubtract(std::shared_ptr<token> t1, std::shared_ptr<token> t2) {
+template<std::size_t colsT, std::size_t rowsT>
+std::vector<double> postProcess<colsT, rowsT>::calculateSubtract(std::shared_ptr<token> t1, std::shared_ptr<token> t2) {
     auto var1T = dynamic_cast<dataToken *>(t1.get());
   auto var2T = dynamic_cast<dataToken *>(t2.get());
   
@@ -262,8 +272,9 @@ std::vector<double> postProcess::calculateSubtract(std::shared_ptr<token> t1, st
   }
   return output;
 };
- 
-std::vector<double> postProcess::calculateAdd(std::shared_ptr<token> t1, std::shared_ptr<token> t2) {
+
+template<std::size_t colsT, std::size_t rowsT>
+std::vector<double> postProcess<colsT, rowsT>::calculateAdd(std::shared_ptr<token> t1, std::shared_ptr<token> t2) {
   auto var1T = dynamic_cast<dataToken *>(t1.get());
   auto var2T = dynamic_cast<dataToken *>(t2.get());
   
@@ -280,7 +291,8 @@ std::vector<double> postProcess::calculateAdd(std::shared_ptr<token> t1, std::sh
 
 }
 
-std::vector<double> postProcess::calculateVoltage(std::shared_ptr<token> t) {
+template<std::size_t colsT, std::size_t rowsT>
+std::vector<double> postProcess<colsT, rowsT>::calculateVoltage(std::shared_ptr<token> t) {
   auto componentT = dynamic_cast<componentToken *>(t.get());
   switch (componentT->componentType) {
   case Component::INDUCTOR:
@@ -332,7 +344,8 @@ std::vector<double> postProcess::calculateVoltage(std::shared_ptr<token> t) {
   return std::vector<double>();
 }
 
-std::vector<std::shared_ptr<token>> postProcess::getConnectedNodesFromComponentPtr(std::shared_ptr<token> component) {
+template<std::size_t colsT, std::size_t rowsT>
+std::vector<std::shared_ptr<token>> postProcess<colsT, rowsT>::getConnectedNodesFromComponentPtr(std::shared_ptr<token> component) {
   auto componentT = dynamic_cast<componentToken *>(component.get());
   std::vector<std::shared_ptr<token>> output;
   for (auto& t : tokens) {
@@ -349,7 +362,8 @@ std::vector<std::shared_ptr<token>> postProcess::getConnectedNodesFromComponentP
   return output;
 }
 
-std::vector<double> postProcess::getDataFromToken(std::shared_ptr<token> t) {
+template<std::size_t colsT, std::size_t rowsT>
+std::vector<double> postProcess<colsT, rowsT>::getDataFromToken(std::shared_ptr<token> t) {
   switch (t->type) {
   case token::COMPONENT: {
     auto T = dynamic_cast<componentToken *>(t.get());

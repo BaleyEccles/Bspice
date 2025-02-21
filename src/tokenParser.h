@@ -7,20 +7,21 @@
 #include <vector>
 #include <fstream>
 
-template<typename T1, typename T2, typename T3>
-Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<token>>& tokens);
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+Circuit<T1, T2, T3, colsT, rowsT> createCircuitFromTokens(std::vector<std::shared_ptr<token>>& tokens);
 
 
+template<std::size_t colsT, std::size_t rowsT>
 class postProcess {
 public:
-  postProcess(const std::string& octaveFileName, std::vector<double> &time, std::vector<matrix<double>> &data, matrix<symbol> &syms, std::vector<std::shared_ptr<token>> &tokens);
+  postProcess(const std::string& octaveFileName, std::vector<double> &time, std::vector<matrix<double, 1, rowsT>> &data, matrix<symbol, 1, rowsT> &syms, std::vector<std::shared_ptr<token>> &tokens);
   ~postProcess();
   
 private:
   const std::string fileName;
   std::vector<double> time;
-  std::vector<matrix<double>> data;
-  matrix<symbol> syms;
+  std::vector<matrix<double, 1, rowsT>> data;
+  matrix<symbol, 1, rowsT> syms;
   std::vector<std::shared_ptr<token>> tokens;
   std::ofstream file;
   
@@ -43,9 +44,9 @@ private:
 };
 
 
-template<typename T1, typename T2, typename T3>
-Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<token>>& tokens) {
-  Circuit<T1, T2, T3> circuit;
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+Circuit<T1, T2, T3, colsT, rowsT> createCircuitFromTokens(std::vector<std::shared_ptr<token>>& tokens) {
+  Circuit<T1, T2, T3, colsT, rowsT> circuit;
   for (auto& token : tokens) {
     if (token->type == token::TIME) {
       auto time = dynamic_cast<timeToken *>(token.get());
@@ -111,4 +112,4 @@ Circuit<T1, T2, T3> createCircuitFromTokens(std::vector<std::shared_ptr<token>>&
 }
 
 
-
+#include "tokenParser_impl.h"

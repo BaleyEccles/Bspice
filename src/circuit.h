@@ -6,7 +6,7 @@
 #include "BMaths/BMaths.h"
 #include "component.h"
 
-template<typename T1, typename T2, typename T3>
+template<typename T1, typename T2, typename T3, std::size_t rowsT, std::size_t colsT>
 class Circuit{
 public:
   Circuit();
@@ -20,14 +20,14 @@ public:
   // Data
   double stopTime, timeStep;
   std::vector<double> time;
-  matrix<T1> A;
-  matrix<T2> E;
-  matrix<T3> f;
-  matrix<double> initalValues;
-  matrix<symbol> syms;
+  matrix<T1, colsT, rowsT> A;
+  matrix<T2, colsT, rowsT> E;
+  matrix<T3, 1, rowsT> f;
+  matrix<double, 1, rowsT> initalValues;
+  matrix<symbol, 1, rowsT> syms;
 
   // Helper functions
-  matrix<symbol> removeGroundSym();
+  matrix<symbol, 1, rowsT> removeGroundSym();
 private:
   void generateMatrices();
   std::vector<Node*> findNodeFromComponent(std::shared_ptr<Component> comp);
@@ -44,12 +44,12 @@ private:
 };
 
 
-template<typename T1, typename T2, typename T3>
-Circuit<T1, T2, T3>::Circuit() {}
-template<typename T1, typename T2, typename T3>
-void Circuit<T1, T2, T3>::addNode(Node *node) { nodes.push_back(node); }
-template<typename T1, typename T2, typename T3>
-void Circuit<T1, T2, T3>::calculate() {
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+Circuit<T1, T2, T3, colsT, rowsT>::Circuit() {}
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+void Circuit<T1, T2, T3, colsT, rowsT>::addNode(Node *node) { nodes.push_back(node); }
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+void Circuit<T1, T2, T3, colsT, rowsT>::calculate() {
   generateSymbols();
   preAllocateMatrixData();
 
@@ -62,8 +62,8 @@ void Circuit<T1, T2, T3>::calculate() {
   syms.print("syms:");
   initalValues.print("Inital Values:");
 }
-template<typename T1, typename T2, typename T3>
-void Circuit<T1, T2, T3>::generateMatrices() {
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+void Circuit<T1, T2, T3, colsT, rowsT>::generateMatrices() {
   
   int equationNumber = 0;
   for (auto node : nodes) {
@@ -226,8 +226,8 @@ void Circuit<T1, T2, T3>::generateMatrices() {
   }
 }
 
-template<typename T1, typename T2, typename T3>
-function Circuit<T1, T2, T3>::createVoltageFunction(VoltageSource::functionType& type, std::vector<double>& values) {
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+function Circuit<T1, T2, T3, colsT, rowsT>::createVoltageFunction(VoltageSource::functionType& type, std::vector<double>& values) {
   function f;
   switch (type) {
   case VoltageSource::functionType::NONE: {
@@ -260,8 +260,8 @@ function Circuit<T1, T2, T3>::createVoltageFunction(VoltageSource::functionType&
 }
 
 
-template<typename T1, typename T2, typename T3>
-std::vector<Node *> Circuit<T1, T2, T3>::findNodeFromComponent(std::shared_ptr<Component> comp1) {
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+std::vector<Node *> Circuit<T1, T2, T3, colsT, rowsT>::findNodeFromComponent(std::shared_ptr<Component> comp1) {
   std::vector<Node *> nodesWithComponent;
   for (auto node : nodes) {
     for (auto comp2 : node->components) {
@@ -273,8 +273,8 @@ std::vector<Node *> Circuit<T1, T2, T3>::findNodeFromComponent(std::shared_ptr<C
   return nodesWithComponent;
 }
 
-template<typename T1, typename T2, typename T3>
-int Circuit<T1, T2, T3>::findNodeLocationFromNode(Node *node) {
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+int Circuit<T1, T2, T3, colsT, rowsT>::findNodeLocationFromNode(Node *node) {
   for (int i = 0; i < syms.rows; i++) {
     for (int j = 0; j < syms.cols; j++) {
       if (syms.data[i][j].name == node->nodeName) {
@@ -285,8 +285,8 @@ int Circuit<T1, T2, T3>::findNodeLocationFromNode(Node *node) {
   std::cerr << "ERROR: Location Not Found" << std::endl;
   return -1;
 }
-template<typename T1, typename T2, typename T3>
-int Circuit<T1, T2, T3>::findNodeLocationFromSymbol(std::string symName) {
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+int Circuit<T1, T2, T3, colsT, rowsT>::findNodeLocationFromSymbol(std::string symName) {
   for (int i = 0; i < syms.rows; i++) {
     for (int j = 0; j < syms.cols; j++) {
       if (syms.data[i][j].name == symName) {
@@ -298,13 +298,13 @@ int Circuit<T1, T2, T3>::findNodeLocationFromSymbol(std::string symName) {
   return -1;
 }
 
-template<typename T1, typename T2, typename T3>
-void Circuit<T1, T2, T3>::generateSymbols() {
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+void Circuit<T1, T2, T3, colsT, rowsT>::generateSymbols() {
   bool hasGround = false;
   syms.rows = 0;
   syms.cols = 1;
   for (auto node : nodes) {
-    syms.data.push_back({node->nodeName});
+    syms.data[syms.rows][0] = node->nodeName;
     syms.rows++;
   }
 
@@ -314,7 +314,7 @@ void Circuit<T1, T2, T3>::generateSymbols() {
         symbol componetCurrent = symbol("i_" + c.first->ComponentName);
         
         if (!isInSymbols(componetCurrent)) {
-          syms.data.push_back({componetCurrent});
+          syms.data[syms.rows][0] = componetCurrent;
           syms.rows++;
         }
       } else if (c.first->Type == Component::ComponentType::OPAMP) {
@@ -322,11 +322,11 @@ void Circuit<T1, T2, T3>::generateSymbols() {
         symbol componetCurrentN = symbol("i_" + c.first->ComponentName + "N");
         
         if (!isInSymbols(componetCurrentP)) {
-          syms.data.push_back({componetCurrentP});
+          syms.data[syms.rows][0] = componetCurrentP;
           syms.rows++;
         }
         if (!isInSymbols(componetCurrentN)) {
-          syms.data.push_back({componetCurrentN});
+          syms.data[syms.rows][0] = componetCurrentN;
           syms.rows++;
         }
 
@@ -336,8 +336,8 @@ void Circuit<T1, T2, T3>::generateSymbols() {
   syms.rows = syms.data.size();
 }
 
-template<typename T1, typename T2, typename T3>
-bool Circuit<T1, T2, T3>::isInSymbols(symbol sym) {
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+bool Circuit<T1, T2, T3, colsT, rowsT>::isInSymbols(symbol sym) {
   auto symsTransposed = syms.transpose();
   auto it = std::find(symsTransposed.data[0].begin(), symsTransposed.data[0].end(), sym);
   if (it == symsTransposed.data[0].end()) {
@@ -346,8 +346,8 @@ bool Circuit<T1, T2, T3>::isInSymbols(symbol sym) {
   return true;
 }
 
-template<typename T1, typename T2, typename T3>
-void Circuit<T1, T2, T3>::preAllocateMatrixData() {
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+void Circuit<T1, T2, T3, colsT, rowsT>::preAllocateMatrixData() {
   int matrixSize = syms.rows;
   A.rows = matrixSize;
   A.cols = matrixSize;
@@ -367,8 +367,8 @@ void Circuit<T1, T2, T3>::preAllocateMatrixData() {
 }
 
 // This defines the current direction
-template<typename T1, typename T2, typename T3>
-void Circuit<T1, T2, T3>::generateComponentConections() {
+template<typename T1, typename T2, typename T3, std::size_t colsT, std::size_t rowsT>
+void Circuit<T1, T2, T3, colsT, rowsT>::generateComponentConections() {
   for (auto node : nodes) {
     for (auto c : node->components) {
       if (c.first->Connections.size() == 0) {

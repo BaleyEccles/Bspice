@@ -1,8 +1,8 @@
 #include "differentialEquationSolver.h"
 
-matrix<double> EulersMethod(matrix<double> E, matrix<double> A,
-                            matrix<double> f, matrix<double> yn, double h) {
-  matrix<double> Einv = E.invert();
+template <std::size_t colsT, std::size_t rowsT>
+matrix<double, colsT, rowsT> EulersMethod(matrix<double, colsT, rowsT> E, matrix<double, colsT, rowsT> A, matrix<double, colsT, rowsT> f, matrix<double, colsT, rowsT> yn, double h) {
+  matrix<double, colsT, rowsT> Einv = E.invert();
   std::vector<std::vector<double>> d_yn_dtData;
   std::vector<std::vector<double>> yn1Data;
   auto EinvMulA = Einv * A;
@@ -24,6 +24,6 @@ matrix<double> EulersMethod(matrix<double> E, matrix<double> A,
     yn1Data.push_back({yn1});
   }
 
-  matrix<double> output = {yn1Data, 1, (int)yn1Data.size()};
+  matrix<double, colsT, rowsT> output = {yn1Data, 1, (int)yn1Data.size()};
   return output;
 };

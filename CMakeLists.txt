@@ -20,7 +20,6 @@ set(CPP_FILES
     src/BMaths/function.cpp
     src/component.cpp
     src/fileParser.cpp
-    src/tokenParser.cpp
 )
 
 add_executable(main ${CPP_FILES})

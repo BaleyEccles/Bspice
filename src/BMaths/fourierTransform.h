@@ -4,10 +4,10 @@
 #include <cmath>
 #include <numbers>
 
-template<typename T>
+template<typename T, std::size_t colsT, std::size_t rowsT>
 class FourierTransform {
 public:
-  FourierTransform(std::vector<double> time, matrix<T> inputData) {
+  FourierTransform(std::vector<double> time, matrix<T, colsT, rowsT> inputData) {
     if (inputData.rows != 1) { std::cerr << "ERROR: Rows of inputData must be 1." << std::endl; }
     fft(time, inputData);
     //DFT(time, inputData);
@@ -16,7 +16,7 @@ public:
     phase();
   };
   
-  void fft(std::vector<double> time, matrix<T> inputData) {
+  void fft(std::vector<double> time, matrix<T, colsT, rowsT> inputData) {
     
     int N = std::pow(2, (ceil(log2(inputData.cols))));
     transformData.rows = 1;
@@ -37,7 +37,7 @@ public:
     for (int k = 0; k < N/2; k++) {
       f[k] = k*fs;
     }
-    frequency = matrix<double>{{f}, N/2, 1};
+    frequency; // TODO
   }
   
   std::vector<complexNumber<double>> ditfft2(std::vector<complexNumber<double>>& x, int N) {
@@ -66,7 +66,7 @@ public:
     return X;
   }
 
-  void DFT(std::vector<double> time, matrix<T> inputData) {
+  void DFT(std::vector<double> time, matrix<T, colsT, rowsT> inputData) {
     // Choosing N to be the lenght of the data is fine
     // If we were to encounter the Nyquist sample rate we would have problems earlier
     double fs = 1/time[time.size() - 1];
@@ -114,10 +114,10 @@ public:
     }
   };
 
-  matrix<complexNumber<double>> transformData;
-  matrix<double> frequency;
-  matrix<double> magnitudes;
-  matrix<double> phases;
+  matrix<complexNumber<double>, colsT, rowsT> transformData;
+  matrix<double, colsT, rowsT> frequency;
+  matrix<double, colsT, rowsT> magnitudes;
+  matrix<double, colsT, rowsT> phases;
   
   double sampleFrequency;
 };

@@ -9,7 +9,7 @@
 int main() {
   fileParser parsedFile("../Examples/capacitor.circuit"); // this example does not work
   auto tokens = parsedFile.tokens;
-  Circuit<double, double, function> circuit = createCircuitFromTokens<double, double, function>(tokens);
+  auto circuit = createCircuitFromTokens<double, double, function, 1, 1>(tokens);
   circuit.calculate();
   auto& initalValues = circuit.initalValues;
   auto& A = circuit.A;
@@ -18,9 +18,9 @@ int main() {
   auto& s = circuit.syms;
   double& stopTime = circuit.stopTime;
   double& timeStep = circuit.timeStep;
-  DifferentialAlgebraicEquation<double, double, function> DAE = {A, E, f, s};
+  DifferentialAlgebraicEquation<double, double, function, 1, 1> DAE = {A, E, f, s};
   auto output = DAESolve2(DAE, initalValues, timeStep, stopTime);
-  postProcess("plotData.m", output.first, output.second, s, tokens);
+  postProcess<1, 1>("plotData.m", output.first, output.second, s, tokens);
   
   return 0;
 };
