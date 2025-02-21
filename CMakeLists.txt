@@ -4,13 +4,6 @@ project(MyProject)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg")
-
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
-endif()
-
 
 set(CPP_FILES
     src/main.cpp
@@ -25,10 +18,7 @@ set(CPP_FILES
 
 add_executable(main ${CPP_FILES})
 
-add_custom_target(run
-    COMMAND main
-    DEPENDS main
+target_include_directories(main PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/BMaths
 )
-
-
-

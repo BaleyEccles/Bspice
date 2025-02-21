@@ -4,6 +4,10 @@
 #include <cmath>
 #include <numbers>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 template<typename T>
 class FourierTransform {
 public:

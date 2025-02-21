@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
     std::cerr << "Usage: " << argv[0] << " <input_file>" << std::endl;
   }
   std::string inputFile = argv[1];
-  fileParser parsedFile(inputFile); // this example does not work
+  fileParser parsedFile(inputFile);
   auto tokens = parsedFile.tokens;
   Circuit<double, double, function> circuit = createCircuitFromTokens<double, double, function>(tokens);
   circuit.calculate();
