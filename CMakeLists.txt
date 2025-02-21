@@ -4,7 +4,6 @@ project(MyProject)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
 set(CPP_FILES
     src/main.cpp
     src/BMaths/algebraicEquationSolver.cpp
