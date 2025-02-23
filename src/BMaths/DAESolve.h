@@ -24,35 +24,44 @@ std::vector<int> getDEColIdx(matrix<double> E);
 matrix<double> DAEStepper(matrix<double> A, matrix<double> E, matrix<double> f, matrix<double> yn, double timeStep);
 
 
-// Solve a DAE of the form F = f1
+// Solve a DAE of the form F + E' = f
 // where F is a vector of multivarible functions that do not contain derivatives
+// E' is a vector of multivarible functions that are derivatives of the varibles in F
 // and f is a vector of constants, or a vector of single varible functions
-// AND E = f2
-// where E is a vector of multivarible functions that contains derivatives
-// and f is a vector of constants, or a vector of single varible functions
+// There is a limitation on the relation from E' and F, that is they must be added.
+// EX: The equation x*dx/dt could not be solved. I dont belive there are any circuits that encounter this limitation.
 template<typename T>
 std::pair<std::vector<double>, std::vector<values>> DAESolveNonLinear(DifferentialAlgebraicEquation<multiVaribleFunction, multiVaribleFunction, T> DAE, values initalGuess, double timeStep, double timeEnd) {
   std::vector<values> results;
   std::vector<double> time;
   int steps = ceil(timeEnd/timeStep);
+  double& h = timeStep;
+  auto& F = DAE.A;
   auto& E = DAE.E;
-  auto& A = DAE.A;
   auto& f = DAE.f;
   auto& syms = DAE.syms;
 
   for (int i = 0; i < steps; i++) {
     double time = i * timeStep - timeStep;
-    matrix<double> currentStep;
+    matrix<double> currentStepMatrix;
     if (results.size() == 0) {
-      currentStep = valuesToMatrix(initalGuess, syms);
+      currentStepMatrix = valuesToMatrix<double>(initalGuess, syms);
     } else {
-      currentStep = valuesToMatrix(results[results.size() - 1], syms);
+      currentStepMatrix = valuesToMatrix<double>(results[results.size() - 1], syms);
     }
-    auto EEval = E.evaluate(currentStep);
-    auto fEval = f.evaluate(time);
-    // DE stuff
+    auto currentStepValues = matrixToValues(currentStepMatrix, syms);
 
-    auto xn1 = NewtonsMethod(E, f.evaluate(time), currentStep);
+    // DE solving
+    auto FEval = F.evaluate(currentStepValues);
+    auto fEval = f.evaluate(time);
+    // E' = f - F
+    auto fSubF = fEval - FEval;
+    //    (E'_{n+1} - E'_{n})/h = f - F
+    // => E'_{n+1}= h*(f - F) + E'_{n}
+    auto En1 = fSubF.scale(h) + E.evaluate(currentStepValues);
+
+    // Algebraic equations solving
+    auto Fn1 = NewtonsMethod(F, f.evaluate(time), syms, currentStepValues);
     
   }
 }
@@ -60,7 +69,7 @@ std::pair<std::vector<double>, std::vector<values>> DAESolveNonLinear(Differenti
 
 
 template<typename T>
-std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolveLinear(DifferentialAlgebraicEquation<double, double, T> DAE, values initalGuess, double timeStep, double timeEnd) {x
+std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolveLinear(DifferentialAlgebraicEquation<double, double, T> DAE, values initalGuess, double timeStep, double timeEnd) {
   std::vector<matrix<double>> results;
   std::vector<double> time;
   int steps = ceil(timeEnd/timeStep);
@@ -76,22 +85,22 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolveLinear(Diffe
     
   for (int i = 0; i < steps; i++) {
     double tn = i * timeStep - timeStep;
-    matrix<double> yn;
+    matrix<double> currentStep;
     if (results.size() == 0) {
-      yn = valuesToMatrix(initalGuess, syms);
+      currentStep = valuesToMatrix<double>(initalGuess, syms);
     } else {
-      yn = results[results.size() - 1];
+      currentStep = results[results.size() - 1];
     }
     
-    auto ynDE = getRowsFromIdx(yn, DEIdx);
+    auto currentStepDE = getRowsFromIdx(currentStep, DEIdx);
     matrix<double> xn1;
     if constexpr (std::is_arithmetic<T>::value) {
-      xn1 = add(multiply(DEs.E.invert(), subtract(DEs.f, multiply(DEs.A, yn))).scale(timeStep), ynDE);
+      xn1 = add(multiply(DEs.E.invert(), subtract(DEs.f, multiply(DEs.A, currentStep))).scale(timeStep), currentStepDE);
 
     } else if constexpr (std::is_same<T, function>::value) {
       matrix<double> DEsfEval = DEs.f.evaluate(tn);
       //auto E2 = DEs.E.scale(0.25);
-      xn1 = ((DEs.E.invert() * (DEsfEval - (DEs.A * yn))).scale(timeStep) + ynDE);
+      xn1 = ((DEs.E.invert() * (DEsfEval - (DEs.A * currentStep))).scale(timeStep) + currentStepDE);
     }
 
     auto An = eliminateColsFromIdx(AEs.A, DEColIdx);
@@ -111,7 +120,7 @@ std::pair<std::vector<double>, std::vector<matrix<double>>> DAESolveLinear(Diffe
       newf = (AEfEval - An1xn1);
     }
 
-    auto NewtonGuess = yn;
+    auto NewtonGuess = currentStep;
     j = 0;
     for (auto row : DEIdx) {
       NewtonGuess.eliminateRow(row - j);

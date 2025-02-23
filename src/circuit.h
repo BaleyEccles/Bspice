@@ -5,6 +5,7 @@
 #include <algorithm>
 #include "BMaths/BMaths.h"
 #include "BMaths/function.h"
+#include "BMaths/matrix.h"
 #include "component.h"
 
 template<typename T1, typename T2, typename T3>
@@ -42,7 +43,7 @@ private:
   int findNodeLocationFromNode(Node* node);
   int findNodeLocationFromSymbol(std::string symName);
   void generateComponentConections();
-  int findEquationLocationFromSymbol(std::string s);
+  //int findEquationLocationFromSymbol(std::string s);
   bool isInSymbols(symbol sym);
 
   function createVoltageFunction(VoltageSource::functionType& type, std::vector<double>& values);
@@ -76,7 +77,7 @@ void Circuit<T1, T2, T3>::calculate() {
   E.print("E:");
   f.print("f:");
   symbols.print("syms:");
-  initalValues.print("Inital Values:");
+  valuesToMatrix<double>(initalValues, symbols).print("inital Vals");
 }
 
 template<typename T1, typename T2, typename T3>
@@ -149,8 +150,8 @@ void Circuit<T1, T2, T3>::generateMatricesNonLinear() {
           auto diode = dynamic_cast<Diode *>(c.first.get());
           
           // Shockleys equation
-          int diodeCurrentLocation = findEquationLocationFromSymbol("i_" + diode->ComponentName);
-          int diodeVoltageLocation = findEquationLocationFromSymbol("v_" + diode->ComponentName);
+          int diodeCurrentLocation = findNodeLocationFromSymbol("i_" + diode->ComponentName);
+          int diodeVoltageLocation = findNodeLocationFromSymbol("v_" + diode->ComponentName);
             
           function fExp;
           fExp.addOperation(Operation::exp(std::exp(1.0), B));
@@ -203,7 +204,6 @@ void Circuit<T1, T2, T3>::generateMatricesNonLinear() {
 
 template<typename T1, typename T2, typename T3>
 void Circuit<T1, T2, T3>::generateMatricesLinear() {
-  
   int equationNumber = 0;
   for (auto node : nodes) {
     if (node->nodeName == "GND") {

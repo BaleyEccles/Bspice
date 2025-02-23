@@ -28,7 +28,7 @@ class matrix {
   matrix<T> eliminateRow(int row);
   matrix<T> eliminateCol(int col);
   matrix<double> evaluate(double t);
-  matrix<double> evaluate(std::vector<values> inputs);
+  matrix<double> evaluate(values inputs);
   matrix<T> transpose();
   double norm(double Ln);
   double max();
@@ -61,6 +61,24 @@ matrix<T> valuesToMatrix(values vals, matrix<symbol> syms) {
       std::cerr << "ERROR: values and symbols are mismatched. The symbol: " << sym.name << " was not assigned a value." << std::endl;
     }
   }
+  return output;
+}
+
+template<typename T> // This assumes that input and syms are in the desired order
+values matrixToValues(matrix<T> input, matrix<symbol> syms) {
+  if (input.cols != 1 || syms.cols != 1) {
+    std::cerr << "ERROR: Symbols and input must have one column" << std::endl;
+  }
+  if (input.rows != syms.rows) {
+    std::cerr << "ERROR: Symbols and input must have the row count" << std::endl;
+  }
+
+  values output;
+  
+  for (int row = 0; row < syms.rows; row++) {
+    output[syms.data[row][0]] = input.data[row][0];
+  }
+  
   return output;
 }
 
@@ -152,16 +170,20 @@ matrix<T> matrix<T>::eliminateCol(int col) {
 }
 
 // For multivarible functions
-template<typename T>
-matrix<double> matrix<T>::evaluate(std::vector<values> inputs) {
-  matrix<double> output = {std::vector<std::vector<double>>(rows, std::vector<double>(cols, 0.0)), cols, rows};
-  for (int row = 0; row < output.rows; row++) {
-    for (int col = 0; col < output.cols; col++) {
-      output.data[row][col] = data[row][col].evaluate(inputs);
+template <typename T>
+matrix<double> matrix<T>::evaluate(values inputs) {
+  matrix<double> output;
+  output.cols = cols;
+  output.rows = rows;
+  output.createData();
+  
+  for (int row = 0; row < rows; row++) {
+    for (int col = 0; col < cols; col++) {
+      output.data[row][col] = this->data[row][col].evaluate(inputs);
     }
   }
+  
   return output;
-  std::cerr << "ERROR: Unreachable" << std::endl;
 }
 
 template<typename T>

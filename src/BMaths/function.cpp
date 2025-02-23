@@ -16,6 +16,7 @@ double function::evaluate(double t) const {
   return t;
 };
 
+
 function createConstantFunction(double val, symbol sym) {
   function f;
   f.functionSymbol = sym;
@@ -24,7 +25,9 @@ function createConstantFunction(double val, symbol sym) {
 }
 
 
-double multiVaribleFunction::evaluate(std::vector<values> inputs) {
+
+
+double multiVaribleFunction::evaluate(values inputs) {
   double output = 0.0;
   if (brachOperation == nullptr && isBranch) {
     std::cerr << "ERROR: Branch has no operation defined." << std::endl;
@@ -34,24 +37,24 @@ double multiVaribleFunction::evaluate(std::vector<values> inputs) {
     double b2 = branchEquations.second->evaluate(inputs);
     double output = brachOperation(b1, b2);
   } else {
-    for (auto& input : inputs) {
-      if (input.first.name == nodeData.functionSymbol.name) {
-        output = nodeData.evaluate(input.second);
+    for (auto& [sym, val] : inputs) {
+      if (sym == nodeData.functionSymbol) {
+        output = nodeData.evaluate(val);
       }
     }
   }
   return output;
 };
 
-double multiVaribleFunction::differentiate(symbol varible, std::vector<values> inputs, double h) {
+double multiVaribleFunction::differentiate(symbol varible, values inputs, double h) {
   double fx = this->evaluate(inputs);
-  int varIdx = 0;
   auto heInputs = inputs;
-  for (int i = 0; i < inputs.size(); i++) {
-    if (inputs[i].first.name == varible.name) {
-      heInputs[i].second += h;
+  for (auto& [sym, val] : inputs) {
+    if (sym == varible) {
+      heInputs[sym] += h;
     }
   }
+
   double fxhe = this->evaluate(heInputs);
   return (fxhe-fx)/h;
 }
