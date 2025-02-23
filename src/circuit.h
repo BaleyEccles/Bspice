@@ -123,7 +123,6 @@ void Circuit<T1, T2, T3>::generateMatricesNonLinear() {
           int componentConnectionIdx1 = findNodeLocationFromNode(c.first->Connections[0]);
           int componentCurrentIdx = findNodeLocationFromSymbol("i_" + c.first->ComponentName);
           auto voltageSource = dynamic_cast<VoltageSource *>(c.first.get());
-          
           A.data[equationNumber][0] += createConstantFunction(1.0, symbols.data[componentCurrentIdx][0]);      // f(X) + i_Vs = 0
           A.data[componentCurrentIdx][0] += createConstantFunction(1.0, symbols.data[componentCurrentIdx][0]); // i_Vs = f(t)
           if constexpr (std::is_arithmetic<T3>::value) {
@@ -154,11 +153,11 @@ void Circuit<T1, T2, T3>::generateMatricesNonLinear() {
           int diodeVoltageLocation = findNodeLocationFromSymbol("v_" + diode->ComponentName);
             
           function fExp;
+          fExp.functionSymbol.name = symbols.data[diodeVoltageLocation][0].name;
           fExp.addOperation(Operation::exp(std::exp(1.0), B));
-          fExp.functionSymbol = symbols.data[diodeVoltageLocation][0];
-            
+
           function fCurrent;
-          fCurrent.functionSymbol = symbols.data[diodeCurrentLocation][0];
+          fCurrent.functionSymbol.name = symbols.data[diodeCurrentLocation][0].name;
           fCurrent.addOperation(Operation::multiply(-1/I_s));
 
           // Voltage accros diode
@@ -419,10 +418,12 @@ int Circuit<T1, T2, T3>::findNodeLocationFromNode(Node *node) {
       }
     }
   }
-  std::cerr << "ERROR: Location Not Found" << std::endl;
+  std::cerr << "ERROR: Location of node " << node->nodeName << " was not found." << std::endl;
+  symbols.print("symbols:");
   return -1;
 }
 template<typename T1, typename T2, typename T3>
+
 int Circuit<T1, T2, T3>::findNodeLocationFromSymbol(std::string symName) {
   for (int i = 0; i < symbols.rows; i++) {
     for (int j = 0; j < symbols.cols; j++) {
@@ -431,7 +432,8 @@ int Circuit<T1, T2, T3>::findNodeLocationFromSymbol(std::string symName) {
       }
     }
   }
-  std::cerr << "ERROR: Location Not Found" << std::endl;
+  std::cerr << "ERROR: Location of symbol " << symName << " was not found." << std::endl;
+  symbols.print("symbols:");
   return -1;
 }
 
@@ -473,7 +475,7 @@ void Circuit<T1, T2, T3>::generateSymbols() {
           symbols.data.push_back({componetCurrentN});
           symbols.rows++;
         }
-      } else if (c.first->Type == Component::ComponentType::OPAMP) {
+      } else if (c.first->Type == Component::ComponentType::DIODE) {
         symbol componetVoltage = symbol("v_" + c.first->ComponentName);
         symbol componetCurrent = symbol("i_" + c.first->ComponentName);
         

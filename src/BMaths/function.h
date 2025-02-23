@@ -15,6 +15,7 @@ struct symbol {
   symbol() : name("NULL") {};
   std::string name;
   std::shared_ptr<symbol> parentVarible = nullptr; // used if this varible is a derivative of parent varible
+  
   bool operator==(const symbol& other) const {
     return other.name == name;
   }
@@ -124,7 +125,6 @@ public:
   bool isBranch = false;
   branchPtr brachOperation = nullptr;
   std::pair<std::shared_ptr<multiVaribleFunction>, std::shared_ptr<multiVaribleFunction>> branchEquations;
-
   
   double evaluate(values inputs);
 

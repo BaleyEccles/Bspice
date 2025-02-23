@@ -94,6 +94,12 @@ void matrix<T>::createData() {
     function f0 = createConstantFunction(0.0);
     data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, f0));
     
+  } else if constexpr (std::is_same<T, multiVaribleFunction>::value) {
+    function f = createConstantFunction(0.0);
+    multiVaribleFunction mf;
+    mf.nodeData = f;
+    data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, mf));
+    
   } else if constexpr (std::is_same<T, complexNumber<double>>::value) {
     data = std::vector<std::vector<T>>(rows, std::vector<T>(cols, complexNumber<double>(0.0, 0.0)));
   }
