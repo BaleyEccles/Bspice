@@ -17,7 +17,7 @@ This will produce an executable called `main`.
 To run the project you must pass in the path to the `.circuit` file that you want to run.
 For example:
 ```console
-./main ../Examples/capacitor.circuit
+./main ../Examples/Low-Pass-100Hz.circuit
 ```
 ## Dependencies
 Compiling the project requires no dependencies, except for libc obviously. However the program outputs a `.m` file that can be used to plot the data using GNU octave or Mathworks MATLAB.
